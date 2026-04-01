@@ -319,6 +319,29 @@
   border-color: var(--chatbot-primary);
 }
 
+/* Product Search Bar */
+.ai-chatbot-product-search-wrapper {
+  margin-bottom: 12px;
+  position: sticky;
+  top: -20px; /* Adjust based on body padding */
+  background: #fafafa;
+  z-index: 10;
+  padding: 4px 0 12px 0;
+}
+.ai-chatbot-product-search {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--chatbot-border);
+  border-radius: 20px;
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+.ai-chatbot-product-search:focus {
+  border-color: var(--chatbot-primary);
+}
+
 /* Product Cards */
 .ai-chatbot-product-list {
   display: flex;

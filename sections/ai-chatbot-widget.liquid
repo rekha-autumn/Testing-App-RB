@@ -23,7 +23,7 @@
   window.chatbotProductsData = [];
   {% if section.settings.enquiry_collection != blank %}
     {% assign selected_col = collections[section.settings.enquiry_collection] %}
-    {% for product in selected_col.products limit: 10 %}
+    {% for product in selected_col.products limit: 250 %}
       window.chatbotProductsData.push({
         title: {{ product.title | json }},
         handle: {{ product.handle | json }},
