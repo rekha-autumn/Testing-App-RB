@@ -319,6 +319,114 @@
   border-color: var(--chatbot-primary);
 }
 
+/* Product Cards */
+.ai-chatbot-product-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+.ai-chatbot-product-card {
+  background: #fff;
+  border: 1px solid var(--chatbot-border);
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px;
+}
+.ai-chatbot-product-image {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 4px;
+  background: var(--chatbot-border);
+}
+.ai-chatbot-product-info {
+  flex: 1;
+}
+.ai-chatbot-product-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  color: #000;
+  line-height: 1.2;
+}
+.ai-chatbot-product-price {
+  font-size: 12px;
+  color: var(--chatbot-text-muted);
+  margin-bottom: 8px;
+}
+.ai-chatbot-btn-enquire {
+  background: var(--chatbot-primary);
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.ai-chatbot-btn-enquire:hover {
+  opacity: 0.9;
+}
+
+/* Enquiry Form */
+.ai-chatbot-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  background: var(--chatbot-bg-light);
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--chatbot-border);
+}
+.ai-chatbot-form-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+}
+.ai-chatbot-form input,
+.ai-chatbot-form textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--chatbot-border);
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+  box-sizing: border-box;
+  outline: none;
+}
+.ai-chatbot-form textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+.ai-chatbot-form input:focus,
+.ai-chatbot-form textarea:focus {
+  border-color: var(--chatbot-primary);
+}
+.ai-chatbot-form button {
+  background: var(--chatbot-primary);
+  color: #fff;
+  border: none;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: opacity 0.2s;
+  margin-top: 4px;
+}
+.ai-chatbot-form button:hover {
+  opacity: 0.9;
+}
+.ai-chatbot-form button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Responsive */
 @media (max-width: 480px) {
   .ai-chatbot-window {

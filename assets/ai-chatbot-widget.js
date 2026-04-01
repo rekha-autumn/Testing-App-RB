@@ -9,11 +9,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!container || !toggleBtn || !chatBody) return;
 
-  // Configuration
+  const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbz7QtR0pEQ40naBJFM12FRB4k42gsZJuh4RhBxW4hG1TC8HxCrqu-TmSZHsy5sIx8nvfg/exec";
   const typingDelayMin = 600;
   const typingDelayMax = 1200;
 
-  // Initial State
   let isChatbotOpen = false;
   let hasGreeted = false;
 
@@ -42,37 +41,23 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Predefined Q&A Logic (Structured for easy API migration later)
-  // FUTURE READINESS: You can replace this local logic with an API call like:
-  /*
-    async function fetchBotResponse(userText) {
-      const response = await fetch('YOUR_API_ENDPOINT', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userText })
-      });
-      const data = await response.json();
-      return { text: data.reply, actions: data.actions || [] };
-    }
-  */
+  // Predefined Q&A Logic
   const chatbotDatabase = {
     "hello": {
       text: "Hi there! 👋 I'm your virtual assistant. How can I help you today?",
-      actions: ["What is your product?", "Pricing details", "Contact support"]
+      actions: ["Show products", "Contact support"]
     },
     "default": {
-      text: "I'm still learning! For now, can I assist you with an overview of our product, features, or pricing?",
-      actions: ["What is your product?", "Features", "Pricing"]
+      text: "I'm still learning! Can I assist you with an overview of our products, or help you contact support?",
+      actions: ["Show products", "Pricing", "Contact"]
     },
-    "what is your product?": {
-      text: "We provide state-of-the-art chatbot solutions for Shopify stores to engage customers 24/7. 🚀"
-    },
-    "features": {
-      text: "Our key features include instant AI responses, custom workflows, smooth animations, and API hook readiness.",
-      actions: ["Pricing", "Contact support"]
+    "show products": {
+      type: "products",
+      text: "Here are some of our featured products you can enquire about:",
+      actions: []
     },
     "pricing": {
-      text: "We have flexible plans starting from a free tier up to enterprise packages. Let us know if you want a custom quote!"
+      text: "We have flexible plans. Selecting 'Show products' will display available items and their prices."
     },
     "contact support": {
       text: "You can reach our human support team at support@example.com."
@@ -82,20 +67,12 @@ document.addEventListener("DOMContentLoaded", () => {
   function getBotResponse(userText) {
     const formattedInput = userText.toLowerCase().trim();
     
-    // Exact match
-    if (chatbotDatabase[formattedInput]) {
-      return chatbotDatabase[formattedInput];
-    }
-    
-    // Keyword match logic (basic rule-based)
-    if (formattedInput.includes("product") || formattedInput.includes("what is")) {
-      return chatbotDatabase["what is your product?"];
+    // Keyword match logic
+    if (formattedInput.includes("product") || formattedInput.includes("show") || formattedInput.includes("buy")) {
+      return chatbotDatabase["show products"];
     }
     if (formattedInput.includes("price") || formattedInput.includes("cost") || formattedInput.includes("plan")) {
       return chatbotDatabase["pricing"];
-    }
-    if (formattedInput.includes("feature")) {
-      return chatbotDatabase["features"];
     }
     if (formattedInput.includes("support") || formattedInput.includes("human") || formattedInput.includes("contact")) {
       return chatbotDatabase["contact support"];
@@ -104,12 +81,14 @@ document.addEventListener("DOMContentLoaded", () => {
       return chatbotDatabase["hello"];
     }
 
-    return chatbotDatabase["default"];
+    return chatbotDatabase[formattedInput] || chatbotDatabase["default"];
   }
 
   // UI Helpers
   function scrollToBottom() {
-    chatBody.scrollTo({ top: chatBody.scrollHeight, behavior: 'smooth' });
+    setTimeout(() => {
+      chatBody.scrollTo({ top: chatBody.scrollHeight, behavior: 'smooth' });
+    }, 50);
   }
 
   function appendMessage(sender, text) {
@@ -164,11 +143,159 @@ document.addEventListener("DOMContentLoaded", () => {
     scrollToBottom();
   }
 
-  // Handle Response logic
-  function sendBotReply(inputQuery) {
+  function appendProducts() {
+    const products = window.chatbotProductsData || [];
+    
+    if (products.length === 0) {
+      appendMessage("bot", "Sorry, no products are currently available in the selected collection.");
+      return;
+    }
+
+    // Container for product list
+    const productListEl = document.createElement("div");
+    productListEl.className = "ai-chatbot-message bot";
+    
+    const listWrapper = document.createElement("div");
+    listWrapper.className = "ai-chatbot-product-list";
+
+    products.forEach(product => {
+      const card = document.createElement("div");
+      card.className = "ai-chatbot-product-card";
+      
+      card.innerHTML = `
+        <img src="${product.image || ''}" class="ai-chatbot-product-image" alt="${product.title}" onerror="this.style.display='none'">
+        <div class="ai-chatbot-product-info">
+          <h4 class="ai-chatbot-product-title">${product.title}</h4>
+          <div class="ai-chatbot-product-price">${product.price || ''}</div>
+          <button class="ai-chatbot-btn-enquire" data-product="${product.title.replace(/"/g, '&quot;')}">Enquire</button>
+        </div>
+      `;
+      listWrapper.appendChild(card);
+    });
+
+    productListEl.appendChild(listWrapper);
+    chatBody.appendChild(productListEl);
+    
+    // Attach events to enquire buttons
+    const enquireBtns = productListEl.querySelectorAll('.ai-chatbot-btn-enquire');
+    enquireBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const productTitle = e.target.getAttribute('data-product');
+        startEnquiryFlow(productTitle);
+      });
+    });
+
+    scrollToBottom();
+  }
+
+  // --- Enquiry Form Logic ---
+  
+  function startEnquiryFlow(productTitle) {
+    // Acknowledge the user's click
+    appendMessage("user", `I'd like to enquire about: ${productTitle}`);
+    
     const typingIndicator = appendTypingIndicator();
     
-    // Simulate network/typing delay
+    setTimeout(() => {
+      if (typingIndicator && typingIndicator.parentNode) typingIndicator.parentNode.removeChild(typingIndicator);
+      
+      appendMessage("bot", `Great choice! Please fill out this quick form for "${productTitle}" so our team can get in touch.`);
+      
+      // Append Form Node
+      appendForm(productTitle);
+    }, 800);
+  }
+
+  function appendForm(productTitle) {
+    const formContainer = document.createElement("div");
+    formContainer.className = "ai-chatbot-message bot";
+    
+    const formEl = document.createElement("div");
+    formEl.className = "ai-chatbot-form";
+    formEl.innerHTML = `
+      <div class="ai-chatbot-form-title">Enquiry Details</div>
+      <input type="text" id="ai-enquiry-name" placeholder="Your Name" required>
+      <input type="email" id="ai-enquiry-email" placeholder="Your Email or Phone" required>
+      <textarea id="ai-enquiry-message" placeholder="Optional message..."></textarea>
+      <button id="ai-enquiry-submit">Submit Enquiry</button>
+    `;
+    
+    formContainer.appendChild(formEl);
+    chatBody.appendChild(formContainer);
+    scrollToBottom();
+
+    const submitBtn = formEl.querySelector("#ai-enquiry-submit");
+    submitBtn.addEventListener("click", () => {
+      const name = formEl.querySelector("#ai-enquiry-name").value.trim();
+      const email = formEl.querySelector("#ai-enquiry-email").value.trim();
+      const message = formEl.querySelector("#ai-enquiry-message").value.trim();
+
+      if (!name || !email) {
+        alert("Please provide both your name and email.");
+        return;
+      }
+
+      // Disable button and form while submitting
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Submitting...";
+      formEl.querySelectorAll('input, textarea').forEach(el => el.disabled = true);
+
+      submitToGoogleSheets(productTitle, name, email, message, formContainer);
+    });
+  }
+
+  async function submitToGoogleSheets(productTitle, name, email, message, formContainerNode) {
+    const typingIndicator = appendTypingIndicator();
+    
+    const payload = {
+      product: productTitle,
+      name: name,
+      email: email,
+      message: message
+    };
+
+    try {
+      const response = await fetch(GOOGLE_SHEET_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        mode: "no-cors", 
+        body: JSON.stringify(payload)
+      });
+      
+      // Assuming success due to no-cors opacity
+      onSubmissionSuccess(typingIndicator, name, productTitle);
+      if (formContainerNode) {
+        formContainerNode.style.opacity = '0.5';
+        formContainerNode.style.pointerEvents = 'none';
+      }
+
+    } catch (error) {
+      console.error("Enquiry submission error:", error);
+      if (typingIndicator && typingIndicator.parentNode) typingIndicator.parentNode.removeChild(typingIndicator);
+      appendMessage("bot", "Sorry, there was an error submitting your enquiry. Please try again later. 😔");
+      
+      // Reset form
+      if (formContainerNode) {
+        const btn = formContainerNode.querySelector('button');
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = "Submit Enquiry";
+        }
+        formContainerNode.querySelectorAll('input, textarea').forEach(el => el.disabled = false);
+      }
+    }
+  }
+
+  function onSubmissionSuccess(typingIndicator, name, productTitle) {
+    if (typingIndicator && typingIndicator.parentNode) typingIndicator.parentNode.removeChild(typingIndicator);
+    appendMessage("bot", `✅ Thank you, ${name}! Your enquiry for \n"${productTitle}" \nhas been successfully submitted. Our team will contact you shortly.`);
+    appendActions(["Show products", "Contact support"]);
+  }
+
+
+  // --- Core Message Event ---
+  function sendBotReply(inputQuery) {
+    const typingIndicator = appendTypingIndicator();
     const delay = Math.random() * (typingDelayMax - typingDelayMin) + typingDelayMin;
     
     setTimeout(() => {
@@ -178,8 +305,18 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       
       const responseData = getBotResponse(inputQuery);
-      appendMessage("bot", responseData.text);
       
+      // Print text message if exists
+      if (responseData.text) {
+        appendMessage("bot", responseData.text);
+      }
+      
+      // If the intent type requires fetching products, call function
+      if (responseData.type === "products") {
+        appendProducts();
+      }
+      
+      // Append suggested actions
       if (responseData.actions) {
         appendActions(responseData.actions);
       }
