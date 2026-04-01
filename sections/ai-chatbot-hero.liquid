@@ -1,0 +1,247 @@
+{% schema %}
+{
+  "name": "AI Chatbot Hero",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Smart AI Chatbot for Your Store"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Engage visitors, capture leads, and boost sales 24/7 with our seamless AI chatbot integration built perfectly for Shopify."
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button Label",
+      "default": "Try Live Demo"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button Link"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background Color",
+      "default": "#f4f7f6"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text Color",
+      "default": "#111827"
+    }
+  ],
+  "presets": [
+    {
+      "name": "AI Chatbot Hero",
+      "category": "Chatbot Marketing"
+    }
+  ]
+}
+{% endschema %}
+
+<style>
+  .ai-hero-wrapper {
+    background-color: {{ section.settings.bg_color }};
+    color: {{ section.settings.text_color }};
+    padding: 80px 20px;
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+  }
+  .ai-hero-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+  .ai-hero-content {
+    flex: 1;
+    min-width: 320px;
+    animation: slideUp 0.8s ease backwards;
+  }
+  .ai-hero-heading {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 24px;
+    letter-spacing: -0.02em;
+  }
+  .ai-hero-subheading {
+    font-size: 1.25rem;
+    line-height: 1.6;
+    opacity: 0.8;
+    margin-bottom: 32px;
+    max-width: 500px;
+  }
+  .ai-hero-cta {
+    display: inline-flex;
+    padding: 16px 32px;
+    background-color: #000;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.125rem;
+    border-radius: 50px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .ai-hero-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+  }
+  /* Mockup abstract Graphic */
+  .ai-hero-visual {
+    flex: 1;
+    min-width: 320px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    animation: fadeIn 1s ease backwards 0.2s;
+  }
+  .ai-hero-mockup {
+    width: 300px;
+    height: 480px;
+    background: #fff;
+    border-radius: 30px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+    border: 8px solid #000;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .ai-hero-mockup-header {
+    height: 60px;
+    background: #000;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 12px;
+  }
+  .ai-hero-mockup-avatar {
+    width: 28px;
+    height: 28px;
+    background: #4ade80;
+    border-radius: 50%;
+  }
+  .ai-hero-mockup-title {
+    width: 120px;
+    height: 12px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 6px;
+  }
+  .ai-hero-mockup-body {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: #f9fafb;
+  }
+  .ai-hero-bubble {
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    color: #333;
+    max-width: 80%;
+  }
+  .ai-hero-bubble.bot {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+  }
+  .ai-hero-bubble.user {
+    background: #000;
+    color: #fff;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+  }
+  .ai-hero-bubble-text {
+    height: 8px;
+    background: currentColor;
+    border-radius: 4px;
+    opacity: 0.2;
+    margin-bottom: 6px;
+  }
+  .ai-hero-bubble-text:last-child {
+    margin-bottom: 0;
+    width: 80%;
+  }
+  .ai-hero-bubble.user .ai-hero-bubble-text { opacity: 0.6; }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  @media (max-width: 768px) {
+    .ai-hero-heading { font-size: 2.5rem; }
+    .ai-hero-wrapper { padding: 60px 20px; }
+  }
+</style>
+
+<div class="ai-hero-wrapper">
+  <div class="ai-hero-container">
+    <div class="ai-hero-content">
+      <h1 class="ai-hero-heading">{{ section.settings.heading | escape }}</h1>
+      <p class="ai-hero-subheading">{{ section.settings.subheading | escape }}</p>
+      <a href="{{ section.settings.button_link | default: '#' }}" class="ai-hero-cta" id="ai-hero-cta-trigger">
+        {{ section.settings.button_label | escape }}
+      </a>
+    </div>
+    
+    <div class="ai-hero-visual">
+      <div class="ai-hero-mockup">
+        <div class="ai-hero-mockup-header">
+          <div class="ai-hero-mockup-avatar"></div>
+          <div class="ai-hero-mockup-title"></div>
+        </div>
+        <div class="ai-hero-mockup-body">
+          <div class="ai-hero-bubble bot">
+            <div class="ai-hero-bubble-text"></div>
+            <div class="ai-hero-bubble-text" style="width:60%;"></div>
+          </div>
+          <div class="ai-hero-bubble user">
+            <div class="ai-hero-bubble-text"></div>
+          </div>
+          <div class="ai-hero-bubble bot">
+            <div class="ai-hero-bubble-text"></div>
+            <div class="ai-hero-bubble-text" style="width:40%;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Script to trigger chatbot open if button is clicked (assuming the widget is installed)
+  document.addEventListener("DOMContentLoaded", () => {
+    const trigger = document.getElementById("ai-hero-cta-trigger");
+    trigger.addEventListener("click", (e) => {
+      if (trigger.getAttribute("href") === "#") {
+        e.preventDefault();
+        const toggleBtn = document.getElementById("ai-chatbot-toggle");
+        if (toggleBtn) {
+          toggleBtn.click();
+        } else {
+          alert("Chatbot widget is not installed or enabled in theme.liquid yet!");
+        }
+      }
+    });
+  });
+</script>
