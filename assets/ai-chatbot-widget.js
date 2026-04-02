@@ -189,7 +189,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const cartItemsComponents = document.querySelectorAll('cart-items-component');
     const sectionsToUpdate = [];
     cartItemsComponents.forEach(ext => {
-       if (ext.dataset.sectionId) sectionsToUpdate.push(ext.dataset.sectionId);
+       const el = ext;
+       if (el && el.dataset.sectionId) sectionsToUpdate.push(el.dataset.sectionId);
     });
     // Fallback/Common sections
     if (!sectionsToUpdate.includes('header')) sectionsToUpdate.push('header');
@@ -212,7 +213,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (indicator && indicator.parentNode) indicator.parentNode.removeChild(indicator);
       
       // Update Shopify Cart UI using custom event system
-      // We also fetch /cart.js to get the full cart object if needed for the event
       fetch(window.Shopify.routes.root + 'cart.js')
         .then(res => res.json())
         .then(cart => {
@@ -258,16 +258,21 @@ document.addEventListener("DOMContentLoaded", () => {
     interfaceEl.className = "ai-chatbot-message bot";
     interfaceEl.innerHTML = `
       <div class="ai-chatbot-product-search-wrapper">
-        <input type="text" class="ai-chatbot-product-search" placeholder="Search products..." autocomplete="off">
+        <div class="ai-chatbot-search-field-container">
+          <input type="text" class="ai-chatbot-product-search" placeholder="Search products..." autocomplete="off">
+          <span class="ai-chatbot-search-clear" title="Clear search">×</span>
+        </div>
       </div>
       <div class="ai-chatbot-product-list"></div>
     `;
     chatBody.appendChild(interfaceEl);
 
     const searchInput = interfaceEl.querySelector(".ai-chatbot-product-search");
+    const clearBtn = interfaceEl.querySelector(".ai-chatbot-search-clear");
     const listWrapper = interfaceEl.querySelector(".ai-chatbot-product-list");
 
     const renderList = (filter = "") => {
+      if (!listWrapper) return;
       listWrapper.innerHTML = "";
       const query = filter.toLowerCase().trim();
       
@@ -305,16 +310,18 @@ document.addEventListener("DOMContentLoaded", () => {
            displayTitle = p.title.replace(regex, '<mark class="ai-chatbot-highlight">$1</mark>');
         }
 
+        const productIndex = products.indexOf(p);
+
         card.innerHTML = `
           <img src="${p.image || ''}" class="ai-chatbot-product-image" alt="${p.title}" onerror="this.style.display='none'">
           <div class="ai-chatbot-product-info">
             <h4 class="ai-chatbot-product-title">${displayTitle}</h4>
             <div class="ai-chatbot-product-price">${isOutOfStock ? 'Out of Stock' : p.price}</div>
             <div class="ai-chatbot-product-actions">
-              <button class="ai-chatbot-btn-buynow ${isOutOfStock ? 'ai-chatbot-btn-disabled' : ''}" data-index="${products.indexOf(p)}" ${isOutOfStock ? 'disabled' : ''}>Buy Now</button>
-              <button class="ai-chatbot-btn-atc ${isOutOfStock ? 'ai-chatbot-btn-disabled' : ''}" data-index="${products.indexOf(p)}" ${isOutOfStock ? 'disabled' : ''}>Add to Cart</button>
-              <button class="ai-chatbot-btn-secondary btn-show-details" data-index="${products.indexOf(p)}">Details</button>
-              <button class="ai-chatbot-btn-secondary btn-enquire" data-index="${products.indexOf(p)}">Enquire</button>
+              <button class="ai-chatbot-btn-buynow ${isOutOfStock ? 'ai-chatbot-btn-disabled' : ''}" data-index="${productIndex}" ${isOutOfStock ? 'disabled' : ''}>Buy Now</button>
+              <button class="ai-chatbot-btn-atc ${isOutOfStock ? 'ai-chatbot-btn-disabled' : ''}" data-index="${productIndex}" ${isOutOfStock ? 'disabled' : ''}>Add to Cart</button>
+              <button class="ai-chatbot-btn-secondary btn-show-details" data-index="${productIndex}">Details</button>
+              <button class="ai-chatbot-btn-secondary btn-enquire" data-index="${productIndex}">Enquire</button>
             </div>
           </div>
         `;
@@ -322,22 +329,49 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       listWrapper.querySelectorAll('.ai-chatbot-btn-buynow').forEach(btn => {
-        btn.addEventListener('click', () => handleAddToCart(products[btn.dataset.index].variant_id, products[btn.dataset.index].title, true));
+        const el = btn;
+        btn.addEventListener('click', () => handleAddToCart(products[el.dataset.index].variant_id, products[el.dataset.index].title, true));
       });
       listWrapper.querySelectorAll('.ai-chatbot-btn-atc').forEach(btn => {
-        btn.addEventListener('click', () => handleAddToCart(products[btn.dataset.index].variant_id, products[btn.dataset.index].title, false));
+        const el = btn;
+        btn.addEventListener('click', () => handleAddToCart(products[el.dataset.index].variant_id, products[el.dataset.index].title, false));
       });
       listWrapper.querySelectorAll('.btn-show-details').forEach(btn => {
-        btn.addEventListener('click', () => renderProductDetails(products[btn.dataset.index]));
+        const el = btn;
+        btn.addEventListener('click', () => renderProductDetails(products[el.dataset.index]));
       });
       listWrapper.querySelectorAll('.btn-enquire').forEach(btn => {
-        btn.addEventListener('click', () => { selectedProduct = products[btn.dataset.index]; startEnquiryFlow(); });
+        const el = btn;
+        btn.addEventListener('click', () => { selectedProduct = products[el.dataset.index]; startEnquiryFlow(); });
       });
     };
 
     renderList();
     const debouncedSearch = debounce((q) => renderList(q), 300);
-    searchInput.addEventListener("input", (e) => debouncedSearch(e.target.value));
+
+    if (searchInput) {
+      searchInput.addEventListener("input", (e) => {
+        const value = e.target.value;
+        if (value.length > 0) {
+          clearBtn?.classList.add("is-visible");
+        } else {
+          clearBtn?.classList.remove("is-visible");
+        }
+        debouncedSearch(value);
+      });
+    }
+
+    if (clearBtn) {
+      clearBtn.addEventListener("click", () => {
+        if (searchInput) {
+          searchInput.value = "";
+          searchInput.focus();
+        }
+        clearBtn.classList.remove("is-visible");
+        renderList("");
+      });
+    }
+    
     scrollToBottom();
   }
 
