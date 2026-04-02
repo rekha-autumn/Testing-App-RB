@@ -139,6 +139,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function appendActions(actions) {
     if (!actions || actions.length === 0) return;
+    
+    // Remove existing suggestions to prevent duplicates
+    const existingSuggestions = chatBody.querySelectorAll(".ai-chatbot-suggestions");
+    existingSuggestions.forEach(s => s.remove());
+
     const actionContainer = document.createElement("div");
     actionContainer.className = "ai-chatbot-suggestions";
     actions.forEach(actionText => {
@@ -166,10 +171,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Flow Controllers ---
   function renderQuickOptions() {
+    // Clear any existing suggestions first
+    const existing = chatBody.querySelectorAll(".ai-chatbot-suggestions");
+    existing.forEach(s => s.remove());
+
+    const lastMsg = chatBody.lastElementChild;
+    const promptText = "What would you like to do next?";
+    
+    // Prevent repeating the same bot message if it was just sent
+    if (lastMsg && lastMsg.classList.contains('bot') && lastMsg.textContent.includes(promptText)) {
+       appendActions(["Restart Chat", "View All Products", "Need Help"]);
+       return;
+    }
+
     setTimeout(() => {
-      appendMessage("bot", "What would you like to do next?");
-      appendActions(["Restart Chat", "View Products Again", "Need Help"]);
-    }, 1000);
+      appendMessage("bot", promptText);
+      appendActions(["Restart Chat", "View All Products", "Need Help"]);
+    }, 600);
   }
 
   function resetChat() {
@@ -248,14 +266,18 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- Product Interaction Logic ---
 
   function appendProducts() {
-    const products = window.chatbotProductsData || [];
-    if (products.length === 0) {
+    const allProducts = window.chatbotProductsData || [];
+    if (allProducts.length === 0) {
       appendMessage("bot", "Sorry, no products are currently available.");
       return;
     }
 
+    const PRODUCTS_PER_LOAD = 10;
+    let currentFilteredProducts = [...allProducts];
+    let currentIndex = 0;
+
     const interfaceEl = document.createElement("div");
-    interfaceEl.className = "ai-chatbot-message bot";
+    interfaceEl.className = "ai-chatbot-message bot ai-chatbot-products-interface";
     interfaceEl.innerHTML = `
       <div class="ai-chatbot-product-search-wrapper">
         <div class="ai-chatbot-search-field-container">
@@ -264,53 +286,35 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       </div>
       <div class="ai-chatbot-product-list"></div>
+      <div class="ai-chatbot-load-more-container" style="display:none; text-align:center; padding: 10px 0;">
+        <button class="ai-chatbot-btn-load-more">See More Products ↓</button>
+      </div>
     `;
     chatBody.appendChild(interfaceEl);
 
     const searchInput = interfaceEl.querySelector(".ai-chatbot-product-search");
     const clearBtn = interfaceEl.querySelector(".ai-chatbot-search-clear");
     const listWrapper = interfaceEl.querySelector(".ai-chatbot-product-list");
+    const loadMoreContainer = interfaceEl.querySelector(".ai-chatbot-load-more-container");
+    const loadMoreBtn = interfaceEl.querySelector(".ai-chatbot-btn-load-more");
 
-    const renderList = (filter = "") => {
+    const renderCards = (subset) => {
       if (!listWrapper) return;
-      listWrapper.innerHTML = "";
-      const query = filter.toLowerCase().trim();
       
-      const filtered = products.filter(p => {
-        const titleMatch = p.title.toLowerCase().includes(query);
-        const typeMatch = (p.type || "").toLowerCase().includes(query);
-        const tagMatch = (p.tags || []).some(tag => tag.toLowerCase().includes(query));
-        const collectionMatch = (p.collections || []).some(col => col.toLowerCase().includes(query));
-        
-        return titleMatch || typeMatch || tagMatch || collectionMatch;
-      });
-
-      const itemsToShow = filtered.slice(0, query ? 15 : 10);
-
-      if (itemsToShow.length === 0) {
-        listWrapper.innerHTML = `
-          <div style="font-size: 13px; color: #666; padding: 20px; text-align: center; background: #f9f9f9; border-radius: 8px;">
-            <div style="font-size: 20px; margin-bottom: 8px;">🔍</div>
-            No products found matching "<strong>${filter}</strong>".<br>
-            <small>Try searching for categories like "Office", "Decor", or product tags.</small>
-          </div>
-        `;
-        return;
-      }
-
-      itemsToShow.forEach((p) => {
+      subset.forEach((p) => {
         const isOutOfStock = !p.available;
         const card = document.createElement("div");
         card.className = "ai-chatbot-product-card";
         
-        // Simple highlighting for the title if there's a query
+        // Use a persistent query if available for highlighting
+        const query = (searchInput?.value || "").toLowerCase().trim();
         let displayTitle = p.title;
         if (query) {
            const regex = new RegExp(`(${query})`, 'gi');
            displayTitle = p.title.replace(regex, '<mark class="ai-chatbot-highlight">$1</mark>');
         }
 
-        const productIndex = products.indexOf(p);
+        const productIndex = allProducts.indexOf(p);
 
         card.innerHTML = `
           <img src="${p.image || ''}" class="ai-chatbot-product-image" alt="${p.title}" onerror="this.style.display='none'">
@@ -328,26 +332,84 @@ document.addEventListener("DOMContentLoaded", () => {
         listWrapper.appendChild(card);
       });
 
-      listWrapper.querySelectorAll('.ai-chatbot-btn-buynow').forEach(btn => {
-        const el = btn;
-        btn.addEventListener('click', () => handleAddToCart(products[el.dataset.index].variant_id, products[el.dataset.index].title, true));
-      });
-      listWrapper.querySelectorAll('.ai-chatbot-btn-atc').forEach(btn => {
-        const el = btn;
-        btn.addEventListener('click', () => handleAddToCart(products[el.dataset.index].variant_id, products[el.dataset.index].title, false));
-      });
-      listWrapper.querySelectorAll('.btn-show-details').forEach(btn => {
-        const el = btn;
-        btn.addEventListener('click', () => renderProductDetails(products[el.dataset.index]));
-      });
-      listWrapper.querySelectorAll('.btn-enquire').forEach(btn => {
-        const el = btn;
-        btn.addEventListener('click', () => { selectedProduct = products[el.dataset.index]; startEnquiryFlow(); });
+      // Attach events to the newly added cards
+      const newCards = listWrapper.querySelectorAll('.ai-chatbot-product-card:nth-last-child(-n+' + subset.length + ')');
+      newCards.forEach(card => {
+        card.querySelectorAll('.ai-chatbot-btn-buynow').forEach(btn => {
+          const el = btn;
+          btn.addEventListener('click', () => handleAddToCart(allProducts[el.dataset.index].variant_id, allProducts[el.dataset.index].title, true));
+        });
+        card.querySelectorAll('.ai-chatbot-btn-atc').forEach(btn => {
+          const el = btn;
+          btn.addEventListener('click', () => handleAddToCart(allProducts[el.dataset.index].variant_id, allProducts[el.dataset.index].title, false));
+        });
+        card.querySelectorAll('.btn-show-details').forEach(btn => {
+          const el = btn;
+          btn.addEventListener('click', () => renderProductDetails(allProducts[el.dataset.index]));
+        });
+        card.querySelectorAll('.btn-enquire').forEach(btn => {
+          const el = btn;
+          btn.addEventListener('click', () => { selectedProduct = allProducts[el.dataset.index]; startEnquiryFlow(); });
+        });
       });
     };
 
-    renderList();
-    const debouncedSearch = debounce((q) => renderList(q), 300);
+    const updateDisplay = (isNewSearch = false) => {
+      if (isNewSearch) {
+        listWrapper.innerHTML = "";
+        currentIndex = 0;
+      }
+      
+      const nextSet = currentFilteredProducts.slice(currentIndex, currentIndex + PRODUCTS_PER_LOAD);
+      
+      if (nextSet.length === 0 && currentIndex === 0) {
+        listWrapper.innerHTML = `
+          <div style="font-size: 13px; color: #666; padding: 20px; text-align: center; background: #f9f9f9; border-radius: 8px;">
+            <div style="font-size: 20px; margin-bottom: 8px;">🔍</div>
+            No products found matching "<strong>${searchInput?.value}</strong>".<br>
+            <small>Try searching for categories like "Office", "Decor", or product tags.</small>
+          </div>
+        `;
+        loadMoreContainer.style.display = "none";
+        renderQuickOptions();
+        return;
+      }
+
+      renderCards(nextSet);
+      currentIndex += nextSet.length;
+
+      // Show/Hide See More button
+      if (currentIndex < currentFilteredProducts.length) {
+        loadMoreContainer.style.display = "block";
+      } else {
+        loadMoreContainer.style.display = "none";
+        renderQuickOptions(); // Show options when all products are loaded
+      }
+      
+      scrollToBottom();
+    };
+
+    const handleSearch = (query) => {
+      const q = query.toLowerCase().trim();
+      currentFilteredProducts = allProducts.filter(p => {
+        const titleMatch = p.title.toLowerCase().includes(q);
+        const typeMatch = (p.type || "").toLowerCase().includes(q);
+        const tagMatch = (p.tags || []).some(tag => tag.toLowerCase().includes(q));
+        const collectionMatch = (p.collections || []).some(col => col.toLowerCase().includes(q));
+        return titleMatch || typeMatch || tagMatch || collectionMatch;
+      });
+      updateDisplay(true);
+    };
+
+    // Initial load
+    updateDisplay();
+
+    const debouncedSearch = debounce((q) => handleSearch(q), 300);
+    const debouncedShowOptions = debounce(() => {
+      if (searchInput && searchInput.value.trim().length > 0) {
+        renderQuickOptions();
+      }
+    }, 3000);
 
     if (searchInput) {
       searchInput.addEventListener("input", (e) => {
@@ -358,6 +420,7 @@ document.addEventListener("DOMContentLoaded", () => {
           clearBtn?.classList.remove("is-visible");
         }
         debouncedSearch(value);
+        debouncedShowOptions();
       });
     }
 
@@ -368,8 +431,13 @@ document.addEventListener("DOMContentLoaded", () => {
           searchInput.focus();
         }
         clearBtn.classList.remove("is-visible");
-        renderList("");
+        handleSearch("");
+        renderQuickOptions();
       });
+    }
+
+    if (loadMoreBtn) {
+      loadMoreBtn.addEventListener("click", () => updateDisplay());
     }
     
     scrollToBottom();
@@ -467,7 +535,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const res = getBotResponse(query);
       if (res.type === "reset") { resetChat(); return; }
       if (res.text) appendMessage("bot", res.text);
-      if (res.type === "products") appendProducts();
+      if (res.type === "products") {
+        appendProducts();
+        // Trigger options after product list
+        renderQuickOptions();
+      }
       if (res.actions) appendActions(res.actions);
       if (res.type !== "products" && !res.actions) renderQuickOptions();
     }, 800);
@@ -476,6 +548,23 @@ document.addEventListener("DOMContentLoaded", () => {
   function handleUserSubmit(text) {
     if (!text && inputField) text = inputField.value.trim();
     if (!text) return;
+
+    if (text === "View All Products") {
+      console.log("View All Products clicked");
+      appendMessage("user", text);
+      const searchInputs = document.querySelectorAll(".ai-chatbot-product-search");
+      searchInputs.forEach(i => {
+         const input = i;
+         input.value = "";
+      });
+      const clearBtns = document.querySelectorAll(".ai-chatbot-search-clear");
+      clearBtns.forEach(b => b.classList.remove("is-visible"));
+      
+      console.log("Triggering product list and options...");
+      sendBotReply("view products again");
+      return;
+    }
+
     const suggestions = chatBody.querySelectorAll(".ai-chatbot-suggestions");
     suggestions.forEach(s => s.remove());
     appendMessage("user", text);
