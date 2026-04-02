@@ -32,7 +32,10 @@
         description: {{ product.description | strip_html | truncatewords: 30 | json }},
         url: {{ shop.url | append: product.url | json }},
         variant_id: {{ product.first_available_variant.id | json }},
-        available: {{ product.available | json }}
+        available: {{ product.available | json }},
+        type: {{ product.type | json }},
+        tags: {{ product.tags | json }},
+        collections: {{ product.collections | map: 'title' | json }}
       });
     {% endfor %}
   {% else %}

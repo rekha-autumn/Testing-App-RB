@@ -270,11 +270,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const renderList = (filter = "") => {
       listWrapper.innerHTML = "";
       const query = filter.toLowerCase().trim();
-      const filtered = products.filter(p => p.title.toLowerCase().includes(query));
-      const itemsToShow = filtered.slice(0, query ? filtered.length : 15);
+      
+      const filtered = products.filter(p => {
+        const titleMatch = p.title.toLowerCase().includes(query);
+        const typeMatch = (p.type || "").toLowerCase().includes(query);
+        const tagMatch = (p.tags || []).some(tag => tag.toLowerCase().includes(query));
+        const collectionMatch = (p.collections || []).some(col => col.toLowerCase().includes(query));
+        
+        return titleMatch || typeMatch || tagMatch || collectionMatch;
+      });
+
+      const itemsToShow = filtered.slice(0, query ? 15 : 10);
 
       if (itemsToShow.length === 0) {
-        listWrapper.innerHTML = '<div style="font-size: 13px; color: #666; padding: 10px; text-align: center;">No products found.</div>';
+        listWrapper.innerHTML = `
+          <div style="font-size: 13px; color: #666; padding: 20px; text-align: center; background: #f9f9f9; border-radius: 8px;">
+            <div style="font-size: 20px; margin-bottom: 8px;">🔍</div>
+            No products found matching "<strong>${filter}</strong>".<br>
+            <small>Try searching for categories like "Office", "Decor", or product tags.</small>
+          </div>
+        `;
         return;
       }
 
@@ -282,10 +297,18 @@ document.addEventListener("DOMContentLoaded", () => {
         const isOutOfStock = !p.available;
         const card = document.createElement("div");
         card.className = "ai-chatbot-product-card";
+        
+        // Simple highlighting for the title if there's a query
+        let displayTitle = p.title;
+        if (query) {
+           const regex = new RegExp(`(${query})`, 'gi');
+           displayTitle = p.title.replace(regex, '<mark class="ai-chatbot-highlight">$1</mark>');
+        }
+
         card.innerHTML = `
           <img src="${p.image || ''}" class="ai-chatbot-product-image" alt="${p.title}" onerror="this.style.display='none'">
           <div class="ai-chatbot-product-info">
-            <h4 class="ai-chatbot-product-title">${p.title}</h4>
+            <h4 class="ai-chatbot-product-title">${displayTitle}</h4>
             <div class="ai-chatbot-product-price">${isOutOfStock ? 'Out of Stock' : p.price}</div>
             <div class="ai-chatbot-product-actions">
               <button class="ai-chatbot-btn-buynow ${isOutOfStock ? 'ai-chatbot-btn-disabled' : ''}" data-index="${products.indexOf(p)}" ${isOutOfStock ? 'disabled' : ''}>Buy Now</button>
