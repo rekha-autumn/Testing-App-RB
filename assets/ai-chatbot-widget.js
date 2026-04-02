@@ -78,6 +78,10 @@ document.addEventListener("DOMContentLoaded", () => {
     "need help": {
       text: "I'm here! What else can I help you with?",
       actions: ["Show products", "Pricing", "Contact support"]
+    },
+    "cart": {
+      text: "What would you like to do now?",
+      actions: ["View Cart", "Checkout Now", "Continue Shopping"]
     }
   };
 
@@ -86,6 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (formattedInput.includes("restart")) return chatbotDatabase["restart chat"];
     if (formattedInput.includes("view products again")) return chatbotDatabase["view products again"];
     if (formattedInput.includes("need help")) return chatbotDatabase["need help"];
+    if (formattedInput.includes("continue shopping")) return chatbotDatabase["show products"];
     
     if (formattedInput.includes("product") || formattedInput.includes("show") || formattedInput.includes("buy") || formattedInput.includes("item")) {
       return chatbotDatabase["show products"];
@@ -140,7 +145,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const btn = document.createElement("button");
       btn.className = "ai-chatbot-suggestion-btn";
       btn.textContent = actionText;
-      btn.addEventListener("click", () => handleUserSubmit(actionText));
+      btn.addEventListener("click", () => {
+        if (actionText === "View Cart") window.location.href = "/cart";
+        else if (actionText === "Checkout Now") window.location.href = "/checkout";
+        else handleUserSubmit(actionText);
+      });
       actionContainer.appendChild(btn);
     });
     chatBody.appendChild(actionContainer);
@@ -169,6 +178,40 @@ document.addEventListener("DOMContentLoaded", () => {
     selectedProduct = null;
     sendBotReply("hello");
     hasGreeted = true;
+  }
+
+  // --- Purchase Logic (Shopify AJAX API) ---
+  function handleAddToCart(variantId, productTitle, isBuyNow = false) {
+    appendMessage("user", `${isBuyNow ? 'Buying' : 'Adding to cart'}: ${productTitle}`);
+    const indicator = appendTypingIndicator();
+    
+    const formData = { 'items': [{ 'id': variantId, 'quantity': 1 }] };
+
+    fetch(window.Shopify.routes.root + 'cart/add.js', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    })
+    .then(response => {
+      if (!response.ok) throw new Error('Out of stock or error');
+      return response.json();
+    })
+    .then(data => {
+      if (indicator && indicator.parentNode) indicator.parentNode.removeChild(indicator);
+      
+      if (isBuyNow) {
+        appendMessage("bot", "Redirecting you to checkout...");
+        window.location.href = "/checkout";
+      } else {
+        appendMessage("bot", `✅ Success! "${productTitle}" has been added to your cart.`);
+        appendActions(["View Cart", "Checkout Now", "Continue Shopping"]);
+      }
+    })
+    .catch((error) => {
+      if (indicator && indicator.parentNode) indicator.parentNode.removeChild(indicator);
+      appendMessage("bot", "Oops! This item might be out of stock or there was an error adding it to the cart.");
+      renderQuickOptions();
+    });
   }
 
   // --- Product Interaction Logic ---
@@ -204,34 +247,37 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      itemsToShow.forEach((p, index) => {
+      itemsToShow.forEach((p) => {
+        const isOutOfStock = !p.available;
         const card = document.createElement("div");
         card.className = "ai-chatbot-product-card";
         card.innerHTML = `
           <img src="${p.image || ''}" class="ai-chatbot-product-image" alt="${p.title}" onerror="this.style.display='none'">
           <div class="ai-chatbot-product-info">
             <h4 class="ai-chatbot-product-title">${p.title}</h4>
-            <div class="ai-chatbot-product-price">${p.price || ''}</div>
+            <div class="ai-chatbot-product-price">${isOutOfStock ? 'Out of Stock' : p.price}</div>
             <div class="ai-chatbot-product-actions">
-              <button class="ai-chatbot-btn-enquire" data-index="${products.indexOf(p)}">Enquire</button>
-              <button class="ai-chatbot-btn-secondary btn-show-details" data-index="${products.indexOf(p)}">Show Details</button>
+              <button class="ai-chatbot-btn-buynow ${isOutOfStock ? 'ai-chatbot-btn-disabled' : ''}" data-index="${products.indexOf(p)}" ${isOutOfStock ? 'disabled' : ''}>Buy Now</button>
+              <button class="ai-chatbot-btn-atc ${isOutOfStock ? 'ai-chatbot-btn-disabled' : ''}" data-index="${products.indexOf(p)}" ${isOutOfStock ? 'disabled' : ''}>Add to Cart</button>
+              <button class="ai-chatbot-btn-secondary btn-show-details" data-index="${products.indexOf(p)}">Details</button>
+              <button class="ai-chatbot-btn-secondary btn-enquire" data-index="${products.indexOf(p)}">Enquire</button>
             </div>
           </div>
         `;
         listWrapper.appendChild(card);
       });
 
-      listWrapper.querySelectorAll('.ai-chatbot-btn-enquire').forEach(btn => {
-        btn.addEventListener('click', () => {
-          selectedProduct = products[btn.dataset.index];
-          startEnquiryFlow();
-        });
+      listWrapper.querySelectorAll('.ai-chatbot-btn-buynow').forEach(btn => {
+        btn.addEventListener('click', () => handleAddToCart(products[btn.dataset.index].variant_id, products[btn.dataset.index].title, true));
       });
-
+      listWrapper.querySelectorAll('.ai-chatbot-btn-atc').forEach(btn => {
+        btn.addEventListener('click', () => handleAddToCart(products[btn.dataset.index].variant_id, products[btn.dataset.index].title, false));
+      });
       listWrapper.querySelectorAll('.btn-show-details').forEach(btn => {
-        btn.addEventListener('click', () => {
-          renderProductDetails(products[btn.dataset.index]);
-        });
+        btn.addEventListener('click', () => renderProductDetails(products[btn.dataset.index]));
+      });
+      listWrapper.querySelectorAll('.btn-enquire').forEach(btn => {
+        btn.addEventListener('click', () => { selectedProduct = products[btn.dataset.index]; startEnquiryFlow(); });
       });
     };
 
@@ -242,30 +288,33 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderProductDetails(product) {
-    appendMessage("user", `Show details for ${product.title}`);
+    appendMessage("user", `Details for ${product.title}`);
     const indicator = appendTypingIndicator();
     
     setTimeout(() => {
       if (indicator && indicator.parentNode) indicator.parentNode.removeChild(indicator);
-      
+      const isOutOfStock = !product.available;
       const detailsCard = document.createElement("div");
       detailsCard.className = "ai-chatbot-message bot";
       detailsCard.innerHTML = `
         <div class="ai-product-details-card">
           <img src="${product.image}" class="ai-product-details-image">
           <h3 class="ai-product-details-title">${product.title}</h3>
-          <div class="ai-product-details-price">${product.price}</div>
+          <div class="ai-product-details-price">${isOutOfStock ? 'Out of Stock' : product.price}</div>
           <div class="ai-product-details-desc">${product.description || 'No description available.'}</div>
-          <a href="${product.url}" target="_blank" class="ai-product-details-link">View Product on Store →</a>
-          <button class="ai-chatbot-btn-enquire btn-enquire-from-details" style="margin-top:10px; width: 100%;">Enquire Now</button>
+          <div class="ai-chatbot-product-actions">
+            <button class="ai-chatbot-btn-buynow btn-buy-detail ${isOutOfStock ? 'ai-chatbot-btn-disabled' : ''}" ${isOutOfStock ? 'disabled' : ''}>Buy Now</button>
+            <button class="ai-chatbot-btn-atc btn-atc-detail ${isOutOfStock ? 'ai-chatbot-btn-disabled' : ''}" ${isOutOfStock ? 'disabled' : ''}>Add to Cart</button>
+            <button class="ai-chatbot-btn-secondary btn-enquire-detail">Enquire</button>
+          </div>
+          <a href="${product.url}" target="_blank" class="ai-product-details-link">View in Store →</a>
         </div>
       `;
       chatBody.appendChild(detailsCard);
       
-      detailsCard.querySelector('.btn-enquire-from-details').addEventListener('click', () => {
-        selectedProduct = product;
-        startEnquiryFlow();
-      });
+      detailsCard.querySelector('.btn-buy-detail').addEventListener('click', () => handleAddToCart(product.variant_id, product.title, true));
+      detailsCard.querySelector('.btn-atc-detail').addEventListener('click', () => handleAddToCart(product.variant_id, product.title, false));
+      detailsCard.querySelector('.btn-enquire-detail').addEventListener('click', () => { selectedProduct = product; startEnquiryFlow(); });
       
       scrollToBottom();
       renderQuickOptions();
@@ -275,11 +324,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- Enquiry Flow ---
   function startEnquiryFlow() {
     if (!selectedProduct) return;
-    appendMessage("user", `I'd like to enquire about: ${selectedProduct.title}`);
+    appendMessage("user", `Enquiry for: ${selectedProduct.title}`);
     const indicator = appendTypingIndicator();
     setTimeout(() => {
       if (indicator && indicator.parentNode) indicator.parentNode.removeChild(indicator);
-      appendMessage("bot", `Great! Please fill out this form for "${selectedProduct.title}":`);
+      appendMessage("bot", `Please fill out this form for "${selectedProduct.title}":`);
       appendForm();
     }, 800);
   }
@@ -290,9 +339,9 @@ document.addEventListener("DOMContentLoaded", () => {
     container.innerHTML = `
       <div class="ai-chatbot-form">
         <div class="ai-chatbot-form-title">Enquiry Details</div>
-        <input type="text" id="ai-name" placeholder="Your Name" required>
-        <input type="email" id="ai-email" placeholder="Your Email/Phone" required>
-        <textarea id="ai-msg" placeholder="Your Message..."></textarea>
+        <input type="text" id="ai-name" placeholder="Full Name" required>
+        <input type="email" id="ai-email" placeholder="Email/Phone" required>
+        <textarea id="ai-msg" placeholder="Message..."></textarea>
         <button id="ai-submit">Submit Enquiry</button>
       </div>
     `;
@@ -304,7 +353,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const name = container.querySelector("#ai-name").value.trim();
       const email = container.querySelector("#ai-email").value.trim();
       const msg = container.querySelector("#ai-msg").value.trim();
-      if (!name || !email) { alert("Please fill name and email."); return; }
+      if (!name || !email) { alert("Please complete name and email."); return; }
       btn.disabled = true; btn.textContent = "Submitting...";
       submitToGoogleSheets(name, email, msg, container);
     });
@@ -314,11 +363,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const payload = { product_name: selectedProduct.title, product_handle: selectedProduct.handle, name, email, message: msg, price: selectedProduct.price };
     try {
       await fetch(GOOGLE_SHEET_URL, { method: "POST", headers: { "Content-Type": "application/json" }, mode: "no-cors", body: JSON.stringify(payload) });
-      appendMessage("bot", `✅ Thank you, ${name}! Your enquiry for "${selectedProduct.title}" has been submitted.`);
+      appendMessage("bot", `✅ Success! Enquiry for "${selectedProduct.title}" sent.`);
       if (node) { node.style.opacity = '0.5'; node.style.pointerEvents = 'none'; }
       renderQuickOptions();
     } catch (e) {
-      appendMessage("bot", "Error submitting enquiry. Please try again later.");
+      appendMessage("bot", "Error submitting enquiry.");
     }
   }
 

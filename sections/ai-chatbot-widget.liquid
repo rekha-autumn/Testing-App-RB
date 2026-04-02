@@ -30,7 +30,9 @@
         image: {{ product.featured_image | img_url: 'medium' | json }},
         price: {{ product.price | money | json }},
         description: {{ product.description | strip_html | truncatewords: 30 | json }},
-        url: {{ shop.url | append: product.url | json }}
+        url: {{ shop.url | append: product.url | json }},
+        variant_id: {{ product.first_available_variant.id | json }},
+        available: {{ product.available | json }}
       });
     {% endfor %}
   {% else %}

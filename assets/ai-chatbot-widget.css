@@ -426,35 +426,70 @@
 /* Updated Button Styles */
 .ai-chatbot-product-actions {
   display: flex;
+  flex-wrap: wrap; /* Added to keep actions clean */
   gap: 8px;
   margin-top: 8px;
 }
 .ai-chatbot-btn-secondary {
-  flex: 1;
+  flex: 1 1 45%; 
   background: #f2f2f2;
   color: #333;
   border: 1px solid #ddd;
   padding: 8px;
-  font-size: 12px;
+  font-size: 11px;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s;
-  font-weight: 500;
-}
-.ai-chatbot-btn-secondary:hover {
-  background: #e5e5e5;
-  border-color: #ccc;
+  font-weight: 600;
 }
 .ai-chatbot-btn-enquire {
-  flex: 1;
+  flex: 1 1 45%; 
   background: var(--chatbot-primary);
   color: #fff;
   border: none;
   padding: 8px;
-  font-size: 12px;
+  font-size: 11px;
   border-radius: 4px;
   cursor: pointer;
   transition: opacity 0.2s;
+  font-weight: 600;
+}
+.ai-chatbot-btn-atc {
+  flex: 1 1 45%; 
+  background: #ffffff;
+  color: #000;
+  border: 1px solid var(--chatbot-primary);
+  padding: 8px;
+  font-size: 11px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 600;
+}
+.ai-chatbot-btn-atc:hover {
+  background: #f9f9f9;
+}
+.ai-chatbot-btn-buynow {
+  flex: 1 1 100%; /* Full width for the primary action */
+  background: #000;
+  color: #fff;
+  border: none;
+  padding: 10px;
+  font-size: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.ai-chatbot-btn-buynow:hover {
+  background: #333;
+}
+.ai-chatbot-btn-disabled {
+  background: #ccc !important;
+  color: #888 !important;
+  border: none !important;
+  cursor: not-allowed !important;
 }
 
 /* Responsive */
