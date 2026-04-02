@@ -9,18 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const inputField = document.getElementById("ai-chatbot-input");
   const sendBtn = document.getElementById("ai-chatbot-send");
 
-  // Debugging selectors
-  console.log("Chatbot Elements Check:", {
-    container: !!container,
-    toggleBtn: !!toggleBtn,
-    chatBody: !!chatBody,
-    inputField: !!inputField
-  });
-
-  if (!container || !toggleBtn || !chatBody) {
-    console.error("Chatbot: One or more critical elements not found. Initialization aborted.");
-    return;
-  }
+  if (!container || !toggleBtn || !chatBody) return;
 
   const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbytmX89iP87yEnR9VyuIdI11PH0yTqo-TPNHkoWa3EqNHYW3RSBAJw8Bo9d3ngyAJi4/exec";
   const typingDelayMin = 600;
@@ -30,20 +19,15 @@ document.addEventListener("DOMContentLoaded", () => {
   let hasGreeted = false;
   let selectedProduct = null;
 
-  // Toggle Chatbot
+  // --- Toggle Chatbot ---
   const toggleChatbot = (e) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
     }
-
-    console.log("Chatbot clicked"); // Task 3 Requirement
-
     isChatbotOpen = !isChatbotOpen;
     if (isChatbotOpen) {
       container.classList.add("is-open");
-      console.log("Chatbot: Opened");
-
       if (!hasGreeted) {
         sendBotReply("hello");
         hasGreeted = true;
@@ -51,24 +35,19 @@ document.addEventListener("DOMContentLoaded", () => {
       if (inputField) setTimeout(() => inputField.focus(), 300);
     } else {
       container.classList.remove("is-open");
-      console.log("Chatbot: Closed");
     }
   };
 
-  // Attach Event Listeners
   toggleBtn.addEventListener("click", toggleChatbot);
   if (closeBtn) closeBtn.addEventListener("click", toggleChatbot);
 
-  console.log("Chatbot: Event listeners attached successfully.");
-
-  // Focus out on escape key
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && isChatbotOpen) {
       toggleChatbot();
     }
   });
 
-  // Predefined Q&A Logic
+  // --- Predefined Q&A Database ---
   const chatbotDatabase = {
     "hello": {
       text: "Hi there! 👋 I'm your virtual assistant. How can I help you today?",
@@ -88,11 +67,26 @@ document.addEventListener("DOMContentLoaded", () => {
     },
     "contact support": {
       text: "You can reach our human support team at support@example.com."
+    },
+    "restart chat": {
+      type: "reset"
+    },
+    "view products again": {
+      type: "products",
+      text: "Sure! Here is the collection again:"
+    },
+    "need help": {
+      text: "I'm here! What else can I help you with?",
+      actions: ["Show products", "Pricing", "Contact support"]
     }
   };
 
   function getBotResponse(userText) {
     const formattedInput = userText.toLowerCase().trim();
+    if (formattedInput.includes("restart")) return chatbotDatabase["restart chat"];
+    if (formattedInput.includes("view products again")) return chatbotDatabase["view products again"];
+    if (formattedInput.includes("need help")) return chatbotDatabase["need help"];
+    
     if (formattedInput.includes("product") || formattedInput.includes("show") || formattedInput.includes("buy") || formattedInput.includes("item")) {
       return chatbotDatabase["show products"];
     }
@@ -131,11 +125,7 @@ document.addEventListener("DOMContentLoaded", () => {
     messageEl.className = "ai-chatbot-message bot ai-chatbot-typing-indicator";
     const bubbleEl = document.createElement("div");
     bubbleEl.className = "ai-chatbot-bubble ai-chatbot-typing";
-    bubbleEl.innerHTML = `
-      <div class="ai-chatbot-dot"></div>
-      <div class="ai-chatbot-dot"></div>
-      <div class="ai-chatbot-dot"></div>
-    `;
+    bubbleEl.innerHTML = '<div class="ai-chatbot-dot"></div><div class="ai-chatbot-dot"></div><div class="ai-chatbot-dot"></div>';
     messageEl.appendChild(bubbleEl);
     chatBody.appendChild(messageEl);
     scrollToBottom();
@@ -150,9 +140,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const btn = document.createElement("button");
       btn.className = "ai-chatbot-suggestion-btn";
       btn.textContent = actionText;
-      btn.addEventListener("click", () => {
-        handleUserSubmit(actionText);
-      });
+      btn.addEventListener("click", () => handleUserSubmit(actionText));
       actionContainer.appendChild(btn);
     });
     chatBody.appendChild(actionContainer);
@@ -161,224 +149,203 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function debounce(func, wait) {
     let timeout;
-    return function (...args) {
+    return function(...args) {
       clearTimeout(timeout);
       timeout = setTimeout(() => func.apply(this, args), wait);
     };
   }
 
-  // --- Product Search & Display Logic ---
+  // --- Flow Controllers ---
+  function renderQuickOptions() {
+    setTimeout(() => {
+      appendMessage("bot", "What would you like to do next?");
+      appendActions(["Restart Chat", "View Products Again", "Need Help"]);
+    }, 1000);
+  }
+
+  function resetChat() {
+    chatBody.innerHTML = "";
+    hasGreeted = false;
+    selectedProduct = null;
+    sendBotReply("hello");
+    hasGreeted = true;
+  }
+
+  // --- Product Interaction Logic ---
+
   function appendProducts() {
     const products = window.chatbotProductsData || [];
     if (products.length === 0) {
-      appendMessage("bot", "Sorry, no products are currently available in the selected collection.");
+      appendMessage("bot", "Sorry, no products are currently available.");
       return;
     }
 
-    const productInterfaceEl = document.createElement("div");
-    productInterfaceEl.className = "ai-chatbot-message bot";
-
-    const searchWrapper = document.createElement("div");
-    searchWrapper.className = "ai-chatbot-product-search-wrapper";
-    searchWrapper.innerHTML = `
-      <input type="text" class="ai-chatbot-product-search" placeholder="Search products..." autocomplete="off">
+    const interfaceEl = document.createElement("div");
+    interfaceEl.className = "ai-chatbot-message bot";
+    interfaceEl.innerHTML = `
+      <div class="ai-chatbot-product-search-wrapper">
+        <input type="text" class="ai-chatbot-product-search" placeholder="Search products..." autocomplete="off">
+      </div>
+      <div class="ai-chatbot-product-list"></div>
     `;
+    chatBody.appendChild(interfaceEl);
 
-    const listWrapper = document.createElement("div");
-    listWrapper.className = "ai-chatbot-product-list";
-
-    productInterfaceEl.appendChild(searchWrapper);
-    productInterfaceEl.appendChild(listWrapper);
-    chatBody.appendChild(productInterfaceEl);
-
-    const searchInput = searchWrapper.querySelector(".ai-chatbot-product-search");
+    const searchInput = interfaceEl.querySelector(".ai-chatbot-product-search");
+    const listWrapper = interfaceEl.querySelector(".ai-chatbot-product-list");
 
     const renderList = (filter = "") => {
       listWrapper.innerHTML = "";
       const query = filter.toLowerCase().trim();
       const filtered = products.filter(p => p.title.toLowerCase().includes(query));
-      const limit = query ? filtered.length : 20;
-      const itemsToShow = filtered.slice(0, limit);
+      const itemsToShow = filtered.slice(0, query ? filtered.length : 15);
 
       if (itemsToShow.length === 0) {
-        listWrapper.innerHTML = `<div style="font-size: 13px; color: #666; padding: 10px; text-align: center;">No products found for "${filter}"</div>`;
+        listWrapper.innerHTML = '<div style="font-size: 13px; color: #666; padding: 10px; text-align: center;">No products found.</div>';
         return;
       }
 
-      itemsToShow.forEach(product => {
+      itemsToShow.forEach((p, index) => {
         const card = document.createElement("div");
         card.className = "ai-chatbot-product-card";
         card.innerHTML = `
-          <img src="${product.image || ''}" class="ai-chatbot-product-image" alt="${product.title}" onerror="this.style.display='none'">
+          <img src="${p.image || ''}" class="ai-chatbot-product-image" alt="${p.title}" onerror="this.style.display='none'">
           <div class="ai-chatbot-product-info">
-            <h4 class="ai-chatbot-product-title">${product.title}</h4>
-            <div class="ai-chatbot-product-price">${product.price || ''}</div>
-            <button class="ai-chatbot-btn-enquire" 
-                    data-title="${product.title.replace(/"/g, '&quot;')}"
-                    data-handle="${product.handle || ''}"
-                    data-price="${product.price || ''}">Enquire</button>
+            <h4 class="ai-chatbot-product-title">${p.title}</h4>
+            <div class="ai-chatbot-product-price">${p.price || ''}</div>
+            <div class="ai-chatbot-product-actions">
+              <button class="ai-chatbot-btn-enquire" data-index="${products.indexOf(p)}">Enquire</button>
+              <button class="ai-chatbot-btn-secondary btn-show-details" data-index="${products.indexOf(p)}">Show Details</button>
+            </div>
           </div>
         `;
         listWrapper.appendChild(card);
       });
 
       listWrapper.querySelectorAll('.ai-chatbot-btn-enquire').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          selectedProduct = {
-            title: e.currentTarget.getAttribute('data-title'),
-            handle: e.currentTarget.getAttribute('data-handle'),
-            price: e.currentTarget.getAttribute('data-price')
-          };
+        btn.addEventListener('click', () => {
+          selectedProduct = products[btn.dataset.index];
           startEnquiryFlow();
+        });
+      });
+
+      listWrapper.querySelectorAll('.btn-show-details').forEach(btn => {
+        btn.addEventListener('click', () => {
+          renderProductDetails(products[btn.dataset.index]);
         });
       });
     };
 
     renderList();
-
-    const debouncedSearch = debounce((query) => {
-      renderList(query);
-      scrollToBottom();
-    }, 300);
-
-    searchInput.addEventListener("input", (e) => {
-      debouncedSearch(e.target.value);
-    });
-
+    const debouncedSearch = debounce((q) => renderList(q), 300);
+    searchInput.addEventListener("input", (e) => debouncedSearch(e.target.value));
     scrollToBottom();
   }
 
-  // --- Enquiry Flow Logic ---
+  function renderProductDetails(product) {
+    appendMessage("user", `Show details for ${product.title}`);
+    const indicator = appendTypingIndicator();
+    
+    setTimeout(() => {
+      if (indicator && indicator.parentNode) indicator.parentNode.removeChild(indicator);
+      
+      const detailsCard = document.createElement("div");
+      detailsCard.className = "ai-chatbot-message bot";
+      detailsCard.innerHTML = `
+        <div class="ai-product-details-card">
+          <img src="${product.image}" class="ai-product-details-image">
+          <h3 class="ai-product-details-title">${product.title}</h3>
+          <div class="ai-product-details-price">${product.price}</div>
+          <div class="ai-product-details-desc">${product.description || 'No description available.'}</div>
+          <a href="${product.url}" target="_blank" class="ai-product-details-link">View Product on Store →</a>
+          <button class="ai-chatbot-btn-enquire btn-enquire-from-details" style="margin-top:10px; width: 100%;">Enquire Now</button>
+        </div>
+      `;
+      chatBody.appendChild(detailsCard);
+      
+      detailsCard.querySelector('.btn-enquire-from-details').addEventListener('click', () => {
+        selectedProduct = product;
+        startEnquiryFlow();
+      });
+      
+      scrollToBottom();
+      renderQuickOptions();
+    }, 800);
+  }
+
+  // --- Enquiry Flow ---
   function startEnquiryFlow() {
     if (!selectedProduct) return;
-    const { title } = selectedProduct;
-    appendMessage("user", `I'd like to enquire about: ${title}`);
-    const typingIndicator = appendTypingIndicator();
-
+    appendMessage("user", `I'd like to enquire about: ${selectedProduct.title}`);
+    const indicator = appendTypingIndicator();
     setTimeout(() => {
-      if (typingIndicator && typingIndicator.parentNode) typingIndicator.parentNode.removeChild(typingIndicator);
-      appendMessage("bot", `Great choice! Please fill out this quick form for "${title}" so our team can get in touch.`);
+      if (indicator && indicator.parentNode) indicator.parentNode.removeChild(indicator);
+      appendMessage("bot", `Great! Please fill out this form for "${selectedProduct.title}":`);
       appendForm();
     }, 800);
   }
 
   function appendForm() {
-    const formContainer = document.createElement("div");
-    formContainer.className = "ai-chatbot-message bot";
-
-    const formEl = document.createElement("div");
-    formEl.className = "ai-chatbot-form";
-    formEl.innerHTML = `
-      <div class="ai-chatbot-form-title">Enquiry Details</div>
-      <input type="text" id="ai-enquiry-name" placeholder="Your Name" required>
-      <input type="email" id="ai-enquiry-email" placeholder="Your Email or Phone" required>
-      <textarea id="ai-enquiry-message" placeholder="Optional message..."></textarea>
-      <button id="ai-enquiry-submit">Submit Enquiry</button>
+    const container = document.createElement("div");
+    container.className = "ai-chatbot-message bot";
+    container.innerHTML = `
+      <div class="ai-chatbot-form">
+        <div class="ai-chatbot-form-title">Enquiry Details</div>
+        <input type="text" id="ai-name" placeholder="Your Name" required>
+        <input type="email" id="ai-email" placeholder="Your Email/Phone" required>
+        <textarea id="ai-msg" placeholder="Your Message..."></textarea>
+        <button id="ai-submit">Submit Enquiry</button>
+      </div>
     `;
-
-    formContainer.appendChild(formEl);
-    chatBody.appendChild(formContainer);
+    chatBody.appendChild(container);
     scrollToBottom();
 
-    const submitBtn = formEl.querySelector("#ai-enquiry-submit");
-    submitBtn.addEventListener("click", () => {
-      const uName = formEl.querySelector("#ai-enquiry-name").value.trim();
-      const uEmail = formEl.querySelector("#ai-enquiry-email").value.trim();
-      const uMessage = formEl.querySelector("#ai-enquiry-message").value.trim();
-
-      if (!uName || !uEmail) {
-        alert("Please provide both your name and email.");
-        return;
-      }
-
-      submitBtn.disabled = true;
-      submitBtn.textContent = "Submitting...";
-      formEl.querySelectorAll('input, textarea').forEach(el => el.disabled = true);
-      submitToGoogleSheets(uName, uEmail, uMessage, formContainer);
+    const btn = container.querySelector("#ai-submit");
+    btn.addEventListener("click", () => {
+      const name = container.querySelector("#ai-name").value.trim();
+      const email = container.querySelector("#ai-email").value.trim();
+      const msg = container.querySelector("#ai-msg").value.trim();
+      if (!name || !email) { alert("Please fill name and email."); return; }
+      btn.disabled = true; btn.textContent = "Submitting...";
+      submitToGoogleSheets(name, email, msg, container);
     });
   }
 
-  async function submitToGoogleSheets(userName, userEmail, userMessage, formContainerNode) {
-    if (!selectedProduct) return;
-    const typingIndicator = appendTypingIndicator();
-
-    const payload = {
-      product_name: selectedProduct.title,
-      product_handle: selectedProduct.handle,
-      name: userName,
-      email: userEmail,
-      message: userMessage,
-      price: selectedProduct.price
-    };
-
+  async function submitToGoogleSheets(name, email, msg, node) {
+    const payload = { product_name: selectedProduct.title, product_handle: selectedProduct.handle, name, email, message: msg, price: selectedProduct.price };
     try {
-      await fetch(GOOGLE_SHEET_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        mode: "no-cors",
-        body: JSON.stringify(payload)
-      });
-
-      onSubmissionSuccess(userName, selectedProduct.title);
-      if (formContainerNode) {
-        formContainerNode.style.opacity = '0.5';
-        formContainerNode.style.pointerEvents = 'none';
-      }
-      if (typingIndicator && typingIndicator.parentNode) typingIndicator.parentNode.removeChild(typingIndicator);
-    } catch (error) {
-      console.error("Chatbot: Enquiry submission error:", error);
-      if (typingIndicator && typingIndicator.parentNode) typingIndicator.parentNode.removeChild(typingIndicator);
-      appendMessage("bot", "Sorry, there was an error submitting your enquiry. 😔");
-      if (formContainerNode) {
-        const btn = formContainerNode.querySelector('button');
-        if (btn) {
-          btn.disabled = false;
-          btn.textContent = "Submit Enquiry";
-        }
-        formContainerNode.querySelectorAll('input, textarea').forEach(el => el.disabled = false);
-      }
+      await fetch(GOOGLE_SHEET_URL, { method: "POST", headers: { "Content-Type": "application/json" }, mode: "no-cors", body: JSON.stringify(payload) });
+      appendMessage("bot", `✅ Thank you, ${name}! Your enquiry for "${selectedProduct.title}" has been submitted.`);
+      if (node) { node.style.opacity = '0.5'; node.style.pointerEvents = 'none'; }
+      renderQuickOptions();
+    } catch (e) {
+      appendMessage("bot", "Error submitting enquiry. Please try again later.");
     }
   }
 
-  function onSubmissionSuccess(name, productTitle) {
-    appendMessage("bot", `✅ Thank you, ${name}! Your enquiry for "${productTitle}" has been successfully submitted.`);
-    appendActions(["Show products", "Contact support"]);
-  }
-
-  // --- Core Message Event ---
-  function sendBotReply(inputQuery) {
-    const typingIndicator = appendTypingIndicator();
-    const delay = Math.random() * (typingDelayMax - typingDelayMin) + typingDelayMin;
-
+  // --- Core Message Handler ---
+  function sendBotReply(query) {
+    const indicator = appendTypingIndicator();
     setTimeout(() => {
-      if (typingIndicator && typingIndicator.parentNode) {
-        typingIndicator.parentNode.removeChild(typingIndicator);
-      }
-      const responseData = getBotResponse(inputQuery);
-      if (responseData.text) appendMessage("bot", responseData.text);
-      if (responseData.type === "products") appendProducts();
-      if (responseData.actions) appendActions(responseData.actions);
-    }, delay);
+      if (indicator && indicator.parentNode) indicator.parentNode.removeChild(indicator);
+      const res = getBotResponse(query);
+      if (res.type === "reset") { resetChat(); return; }
+      if (res.text) appendMessage("bot", res.text);
+      if (res.type === "products") appendProducts();
+      if (res.actions) appendActions(res.actions);
+      if (res.type !== "products" && !res.actions) renderQuickOptions();
+    }, 800);
   }
 
-  function handleUserSubmit(userText) {
-    const text = userText || inputField.value.trim();
+  function handleUserSubmit(text) {
+    if (!text && inputField) text = inputField.value.trim();
     if (!text) return;
-    const existingActions = chatBody.querySelectorAll(".ai-chatbot-suggestions");
-    existingActions.forEach(el => el.remove());
+    const suggestions = chatBody.querySelectorAll(".ai-chatbot-suggestions");
+    suggestions.forEach(s => s.remove());
     appendMessage("user", text);
-    inputField.value = "";
+    if (inputField) inputField.value = "";
     sendBotReply(text);
   }
 
-  // Event Listeners for Input
   if (sendBtn) sendBtn.addEventListener("click", () => handleUserSubmit());
-  if (inputField) {
-    inputField.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        handleUserSubmit();
-      }
-    });
-  }
+  if (inputField) inputField.addEventListener("keydown", (e) => { if (e.key === "Enter") handleUserSubmit(); });
 });

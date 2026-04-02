@@ -28,7 +28,9 @@
         title: {{ product.title | json }},
         handle: {{ product.handle | json }},
         image: {{ product.featured_image | img_url: 'medium' | json }},
-        price: {{ product.price | money | json }}
+        price: {{ product.price | money | json }},
+        description: {{ product.description | strip_html | truncatewords: 30 | json }},
+        url: {{ shop.url | append: product.url | json }}
       });
     {% endfor %}
   {% else %}
