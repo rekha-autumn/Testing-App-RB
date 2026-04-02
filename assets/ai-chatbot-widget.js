@@ -185,20 +185,51 @@ document.addEventListener("DOMContentLoaded", () => {
     appendMessage("user", `${isBuyNow ? 'Buying' : 'Adding to cart'}: ${productTitle}`);
     const indicator = appendTypingIndicator();
     
-    const formData = { 'items': [{ 'id': variantId, 'quantity': 1 }] };
+    // Theme-specific sections to update
+    const cartItemsComponents = document.querySelectorAll('cart-items-component');
+    const sectionsToUpdate = [];
+    cartItemsComponents.forEach(ext => {
+       if (ext.dataset.sectionId) sectionsToUpdate.push(ext.dataset.sectionId);
+    });
+    // Fallback/Common sections
+    if (!sectionsToUpdate.includes('header')) sectionsToUpdate.push('header');
+    
+    const formData = { 
+      'items': [{ 'id': variantId, 'quantity': 1 }],
+      'sections': sectionsToUpdate.join(',')
+    };
 
     fetch(window.Shopify.routes.root + 'cart/add.js', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData)
     })
-    .then(response => {
+    .then(async response => {
       if (!response.ok) throw new Error('Out of stock or error');
       return response.json();
     })
-    .then(data => {
+    .then(async data => {
       if (indicator && indicator.parentNode) indicator.parentNode.removeChild(indicator);
       
+      // Update Shopify Cart UI using custom event system
+      // We also fetch /cart.js to get the full cart object if needed for the event
+      fetch(window.Shopify.routes.root + 'cart.js')
+        .then(res => res.json())
+        .then(cart => {
+          document.dispatchEvent(new CustomEvent('cart:update', {
+            bubbles: true,
+            detail: {
+              resource: cart,
+              sourceId: 'ai-chatbot',
+              data: {
+                sections: data.sections,
+                itemCount: cart.item_count,
+                variantId: variantId
+              }
+            }
+          }));
+        });
+
       if (isBuyNow) {
         appendMessage("bot", "Redirecting you to checkout...");
         window.location.href = "/checkout";
