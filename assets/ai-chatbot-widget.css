@@ -527,6 +527,111 @@
   font-weight: 700;
 }
 
+/* Order History Styles */
+.ai-chatbot-order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+.ai-chatbot-order-card {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+}
+.ai-order-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+.ai-order-status-badge {
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.ai-order-card-body {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 15px;
+  line-height: 1.6;
+}
+.ai-order-card-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.ai-order-link {
+  font-size: 12px;
+  color: var(--chatbot-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+.ai-order-details-card {
+  background: #fdfdfd;
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px dashed #ddd;
+}
+.ai-order-details-header {
+  font-weight: 600;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #efefef;
+  font-size: 14px;
+}
+.ai-order-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+.ai-order-item {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f9f9f9;
+}
+.ai-order-item:last-child {
+  border-bottom: none;
+}
+.ai-order-item-img {
+  width: 45px;
+  height: 45px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: #fff;
+}
+.ai-order-item-info {
+  flex: 1;
+}
+.ai-order-item-title {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 3px;
+}
+.ai-order-item-meta {
+  font-size: 11px;
+  color: #888;
+}
+.ai-order-details-footer {
+  margin-top: 15px;
+  padding-top: 10px;
+  border-top: 1px solid #eee;
+  text-align: right;
+  font-size: 13px;
+}
+
 /* Responsive */
 @media screen and (max-width: 480px) {
   #ai-chatbot-container {

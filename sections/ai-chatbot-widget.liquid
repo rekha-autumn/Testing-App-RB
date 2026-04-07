@@ -22,12 +22,11 @@
 <script>
   window.chatbotProductsData = [];
   {% if section.settings.enquiry_collection != blank %}
-    {% assign selected_col = collections[section.settings.enquiry_collection] %}
-    {% for product in selected_col.products limit: 250 %}
+    {% for product in collections[section.settings.enquiry_collection].products limit: 250 %}
       window.chatbotProductsData.push({
         title: {{ product.title | json }},
         handle: {{ product.handle | json }},
-        image: {{ product.featured_image | img_url: 'medium' | json }},
+        image: {{ product.featured_image | image_url: width: 480 | json }},
         price: {{ product.price | money | json }},
         description: {{ product.description | strip_html | truncatewords: 30 | json }},
         url: {{ shop.url | append: product.url | json }},
@@ -40,6 +39,34 @@
     {% endfor %}
   {% else %}
     console.log("No collection selected for Chatbot AI.");
+  {% endif %}
+
+  window.isCustomerLoggedIn = {% if customer %}true{% else %}false{% endif %};
+  window.customerEmail = {{ customer.email | json }};
+  
+  <!-- Chatbot Data: Online Store Orders Only -->
+  window.customerOrders = [];
+  {% if customer and customer.orders.size > 0 %}
+    {% for order in customer.orders limit: 10 %}
+      window.customerOrders.push({
+        name: {{ order.name | json }},
+        id: {{ order.name | json }},
+        date: {{ order.created_at | date: "%d %b %Y" | json }},
+        total: {{ order.total_price | money | json }},
+        status: "{{ order.fulfillment_status | capitalize }}",
+        url: {{ order.customer_url | json }},
+        items: [
+          {% for item in order.line_items %}
+            {
+              title: {{ item.title | json }},
+              quantity: {{ item.quantity | json }},
+              price: {{ item.final_line_price | money | json }},
+              image: {{ item.image | image_url: width: 100 | json }}
+            },
+          {% endfor %}
+        ]
+      });
+    {% endfor %}
   {% endif %}
 </script>
 

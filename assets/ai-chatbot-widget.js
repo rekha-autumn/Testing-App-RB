@@ -51,16 +51,19 @@ document.addEventListener("DOMContentLoaded", () => {
   const chatbotDatabase = {
     "hello": {
       text: "Hi there! 👋 I'm your virtual assistant. How can I help you today?",
-      actions: ["Show products", "Contact support"]
-    },
-    "default": {
-      text: "I'm still learning! Can I assist you with an overview of our products, or help you contact support?",
-      actions: ["Show products", "Pricing", "Contact"]
+      actions: ["Show products", "View My Orders", "Contact support"]
     },
     "show products": {
       type: "products",
-      text: "Explore our collection! You can search or browse below:",
-      actions: []
+      text: "Sure! Check out our collection below:"
+    },
+    "default": {
+      text: "I'm still learning! Can I assist you with an overview of our products, or help you contact support?",
+      actions: ["Show products", "View My Orders", "Pricing", "Contact"]
+    },
+    "view my orders": {
+      type: "orders",
+      text: "Let me check that for you..."
     },
     "pricing": {
       text: "We have flexible plans. Selecting 'Show products' will display available items and their prices."
@@ -149,17 +152,42 @@ document.addEventListener("DOMContentLoaded", () => {
     actions.forEach(actionText => {
       const btn = document.createElement("button");
       btn.className = "ai-chatbot-suggestion-btn";
+      if (actionText === "Show products" || actionText === "View All Products") {
+        btn.classList.add("show-products-btn");
+      }
       btn.textContent = actionText;
-      btn.addEventListener("click", () => {
-        if (actionText === "View Cart") window.location.href = "/cart";
-        else if (actionText === "Checkout Now") window.location.href = "/checkout";
-        else handleUserSubmit(actionText);
-      });
       actionContainer.appendChild(btn);
     });
     chatBody.appendChild(actionContainer);
     scrollToBottom();
   }
+
+  // --- Flow Controllers ---
+  function handleShowProducts() {
+    console.log("Show Products triggered");
+    // Trigger reset to default view if needed
+    const searchInputs = document.querySelectorAll(".ai-chatbot-product-search");
+    searchInputs.forEach(i => i.value = "");
+    const clearBtns = document.querySelectorAll(".ai-chatbot-search-clear");
+    clearBtns.forEach(b => b.classList.remove("is-visible"));
+
+    appendProducts();
+  }
+
+  document.addEventListener("click", (e) => {
+    const target = e.target;
+    if (target.classList.contains("ai-chatbot-suggestion-btn") || target.classList.contains("show-products-btn")) {
+      const text = target.textContent;
+      if (text === "View Cart") window.location.href = "/cart";
+      else if (text === "Checkout Now") window.location.href = "/checkout";
+      else if (text === "Show products" || text === "View All Products") {
+        appendMessage("user", text);
+        handleShowProducts();
+      } else {
+        handleUserSubmit(text);
+      }
+    }
+  });
 
   function debounce(func, wait) {
     let timeout;
@@ -537,11 +565,13 @@ document.addEventListener("DOMContentLoaded", () => {
       if (res.text) appendMessage("bot", res.text);
       if (res.type === "products") {
         appendProducts();
-        // Trigger options after product list
         renderQuickOptions();
       }
+      if (res.type === "orders") {
+        appendOrderHistory();
+      }
       if (res.actions) appendActions(res.actions);
-      if (res.type !== "products" && !res.actions) renderQuickOptions();
+      if (res.type !== "products" && res.type !== "orders" && !res.actions) renderQuickOptions();
     }, 800);
   }
 
@@ -549,19 +579,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!text && inputField) text = inputField.value.trim();
     if (!text) return;
 
-    if (text === "View All Products") {
-      console.log("View All Products clicked");
+    if (text === "View All Products" || text === "Show products") {
+      console.log("Product request detected:", text);
       appendMessage("user", text);
-      const searchInputs = document.querySelectorAll(".ai-chatbot-product-search");
-      searchInputs.forEach(i => {
-         const input = i;
-         input.value = "";
-      });
-      const clearBtns = document.querySelectorAll(".ai-chatbot-search-clear");
-      clearBtns.forEach(b => b.classList.remove("is-visible"));
-      
-      console.log("Triggering product list and options...");
-      sendBotReply("view products again");
+      handleShowProducts();
       return;
     }
 
@@ -570,6 +591,109 @@ document.addEventListener("DOMContentLoaded", () => {
     appendMessage("user", text);
     if (inputField) inputField.value = "";
     sendBotReply(text);
+  }
+
+  // --- Order History Logic ---
+  function appendOrderHistory() {
+    const isLoggedIn = window.isCustomerLoggedIn;
+    const orders = window.customerOrders || [];
+
+    console.log("Chatbot Order History Triggered. LoggedIn:", isLoggedIn, "Orders count:", orders.length);
+
+    if (!isLoggedIn) {
+      const loginMsg = document.createElement("div");
+      loginMsg.className = "ai-chatbot-message bot";
+      loginMsg.innerHTML = `
+        <div class="ai-chatbot-bubble">
+          You need to log in to view your order history.
+          <div style="margin-top:10px;">
+            <button class="ai-chatbot-suggestion-btn" onclick="window.location.href='/account/login'">Login / Create Account</button>
+          </div>
+        </div>
+      `;
+      chatBody.appendChild(loginMsg);
+      renderQuickOptions();
+      return;
+    }
+
+    if (orders.length === 0) {
+      appendMessage("bot", "You haven't placed any orders yet. Looking forward to your first purchase! 😊");
+      renderQuickOptions();
+      return;
+    }
+
+    appendMessage("bot", "Here are your recent orders from the online store:");
+    
+    const listEl = document.createElement("div");
+    listEl.className = "ai-chatbot-order-list";
+    
+    orders.forEach((order, idx) => {
+      const card = document.createElement("div");
+      card.className = "ai-chatbot-order-card";
+      card.innerHTML = `
+        <div class="ai-order-card-header">
+          <strong>Order ${order.name}</strong>
+          <span class="ai-order-status-badge">${order.status || 'Verified'}</span>
+        </div>
+        <div class="ai-order-card-body">
+          <div>Date: ${order.date}</div>
+          <div>Total: ${order.total}</div>
+        </div>
+        <div class="ai-order-card-actions">
+          <button class="ai-chatbot-btn-secondary btn-order-details" data-idx="${idx}">View Details</button>
+          <a href="${order.url}" target="_blank" class="ai-order-link">Track Order →</a>
+        </div>
+      `;
+      listEl.appendChild(card);
+    });
+    
+    chatBody.appendChild(listEl);
+    
+    listEl.querySelectorAll('.btn-order-details').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const orderIdx = parseInt(btn.getAttribute('data-idx') || '0');
+        renderOrderDetails(orders[orderIdx]);
+      });
+    });
+
+    renderQuickOptions();
+    scrollToBottom();
+  }
+
+  function renderOrderDetails(order) {
+    appendMessage("user", `View details for ${order.name}`);
+    const indicator = appendTypingIndicator();
+    
+    setTimeout(() => {
+      if (indicator && indicator.parentNode) indicator.parentNode.removeChild(indicator);
+      
+      const detailsEl = document.createElement("div");
+      detailsEl.className = "ai-chatbot-message bot";
+      
+      let itemsHtml = order.items.map(item => `
+        <div class="ai-order-item">
+          <img src="${item.image}" alt="${item.title}" class="ai-order-item-img">
+          <div class="ai-order-item-info">
+            <div class="ai-order-item-title">${item.title}</div>
+            <div class="ai-order-item-meta">Qty: ${item.quantity} | ${item.price}</div>
+          </div>
+        </div>
+      `).join('');
+
+      detailsEl.innerHTML = `
+        <div class="ai-order-details-card">
+          <div class="ai-order-details-header">Items in ${order.name}</div>
+          <div class="ai-order-items-list">${itemsHtml}</div>
+          <div class="ai-order-details-footer">
+             <strong>TotalPaid: ${order.total}</strong>
+             <br><small>Status: ${order.status}</small>
+          </div>
+        </div>
+      `;
+      chatBody.appendChild(detailsEl);
+      renderQuickOptions();
+      scrollToBottom();
+    }, 600);
   }
 
   if (sendBtn) sendBtn.addEventListener("click", () => handleUserSubmit());
