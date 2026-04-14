@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!container || !toggleBtn || !chatBody) return;
 
-  const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbytmX89iP87yEnR9VyuIdI11PH0yTqo-TPNHkoWa3EqNHYW3RSBAJw8Bo9d3ngyAJi4/exec";
+  const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbztv7rS0G4aC8tU1qgNPeaR8ttYT2-0sInNT-QaadLtMlDLgePgWqE34vZqyfk0eGn07A/exec";
   const typingDelayMin = 600;
   const typingDelayMax = 1200;
 
@@ -94,7 +94,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (formattedInput.includes("view products again")) return chatbotDatabase["view products again"];
     if (formattedInput.includes("need help")) return chatbotDatabase["need help"];
     if (formattedInput.includes("continue shopping")) return chatbotDatabase["show products"];
-    
+
     if (formattedInput.includes("product") || formattedInput.includes("show") || formattedInput.includes("buy") || formattedInput.includes("item")) {
       return chatbotDatabase["show products"];
     }
@@ -142,7 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function appendActions(actions) {
     if (!actions || actions.length === 0) return;
-    
+
     // Remove existing suggestions to prevent duplicates
     const existingSuggestions = chatBody.querySelectorAll(".ai-chatbot-suggestions");
     existingSuggestions.forEach(s => s.remove());
@@ -191,7 +191,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function debounce(func, wait) {
     let timeout;
-    return function(...args) {
+    return function (...args) {
       clearTimeout(timeout);
       timeout = setTimeout(() => func.apply(this, args), wait);
     };
@@ -205,11 +205,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const lastMsg = chatBody.lastElementChild;
     const promptText = "What would you like to do next?";
-    
+
     // Prevent repeating the same bot message if it was just sent
     if (lastMsg && lastMsg.classList.contains('bot') && lastMsg.textContent.includes(promptText)) {
-       appendActions(["Restart Chat", "View All Products", "Need Help"]);
-       return;
+      appendActions(["Restart Chat", "View All Products", "Need Help"]);
+      return;
     }
 
     setTimeout(() => {
@@ -230,18 +230,18 @@ document.addEventListener("DOMContentLoaded", () => {
   function handleAddToCart(variantId, productTitle, isBuyNow = false) {
     appendMessage("user", `${isBuyNow ? 'Buying' : 'Adding to cart'}: ${productTitle}`);
     const indicator = appendTypingIndicator();
-    
+
     // Theme-specific sections to update
     const cartItemsComponents = document.querySelectorAll('cart-items-component');
     const sectionsToUpdate = [];
     cartItemsComponents.forEach(ext => {
-       const el = ext;
-       if (el && el.dataset.sectionId) sectionsToUpdate.push(el.dataset.sectionId);
+      const el = ext;
+      if (el && el.dataset.sectionId) sectionsToUpdate.push(el.dataset.sectionId);
     });
     // Fallback/Common sections
     if (!sectionsToUpdate.includes('header')) sectionsToUpdate.push('header');
-    
-    const formData = { 
+
+    const formData = {
       'items': [{ 'id': variantId, 'quantity': 1 }],
       'sections': sectionsToUpdate.join(',')
     };
@@ -251,44 +251,44 @@ document.addEventListener("DOMContentLoaded", () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData)
     })
-    .then(async response => {
-      if (!response.ok) throw new Error('Out of stock or error');
-      return response.json();
-    })
-    .then(async data => {
-      if (indicator && indicator.parentNode) indicator.parentNode.removeChild(indicator);
-      
-      // Update Shopify Cart UI using custom event system
-      fetch(window.Shopify.routes.root + 'cart.js')
-        .then(res => res.json())
-        .then(cart => {
-          document.dispatchEvent(new CustomEvent('cart:update', {
-            bubbles: true,
-            detail: {
-              resource: cart,
-              sourceId: 'ai-chatbot',
-              data: {
-                sections: data.sections,
-                itemCount: cart.item_count,
-                variantId: variantId
-              }
-            }
-          }));
-        });
+      .then(async response => {
+        if (!response.ok) throw new Error('Out of stock or error');
+        return response.json();
+      })
+      .then(async data => {
+        if (indicator && indicator.parentNode) indicator.parentNode.removeChild(indicator);
 
-      if (isBuyNow) {
-        appendMessage("bot", "Redirecting you to checkout...");
-        window.location.href = "/checkout";
-      } else {
-        appendMessage("bot", `✅ Success! "${productTitle}" has been added to your cart.`);
-        appendActions(["View Cart", "Checkout Now", "Continue Shopping"]);
-      }
-    })
-    .catch((error) => {
-      if (indicator && indicator.parentNode) indicator.parentNode.removeChild(indicator);
-      appendMessage("bot", "Oops! This item might be out of stock or there was an error adding it to the cart.");
-      renderQuickOptions();
-    });
+        // Update Shopify Cart UI using custom event system
+        fetch(window.Shopify.routes.root + 'cart.js')
+          .then(res => res.json())
+          .then(cart => {
+            document.dispatchEvent(new CustomEvent('cart:update', {
+              bubbles: true,
+              detail: {
+                resource: cart,
+                sourceId: 'ai-chatbot',
+                data: {
+                  sections: data.sections,
+                  itemCount: cart.item_count,
+                  variantId: variantId
+                }
+              }
+            }));
+          });
+
+        if (isBuyNow) {
+          appendMessage("bot", "Redirecting you to checkout...");
+          window.location.href = "/checkout";
+        } else {
+          appendMessage("bot", `✅ Success! "${productTitle}" has been added to your cart.`);
+          appendActions(["View Cart", "Checkout Now", "Continue Shopping"]);
+        }
+      })
+      .catch((error) => {
+        if (indicator && indicator.parentNode) indicator.parentNode.removeChild(indicator);
+        appendMessage("bot", "Oops! This item might be out of stock or there was an error adding it to the cart.");
+        renderQuickOptions();
+      });
   }
 
   // --- Product Interaction Logic ---
@@ -328,18 +328,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const renderCards = (subset) => {
       if (!listWrapper) return;
-      
+
       subset.forEach((p) => {
         const isOutOfStock = !p.available;
         const card = document.createElement("div");
         card.className = "ai-chatbot-product-card";
-        
+
         // Use a persistent query if available for highlighting
         const query = (searchInput?.value || "").toLowerCase().trim();
         let displayTitle = p.title;
         if (query) {
-           const regex = new RegExp(`(${query})`, 'gi');
-           displayTitle = p.title.replace(regex, '<mark class="ai-chatbot-highlight">$1</mark>');
+          const regex = new RegExp(`(${query})`, 'gi');
+          displayTitle = p.title.replace(regex, '<mark class="ai-chatbot-highlight">$1</mark>');
         }
 
         const productIndex = allProducts.indexOf(p);
@@ -387,9 +387,9 @@ document.addEventListener("DOMContentLoaded", () => {
         listWrapper.innerHTML = "";
         currentIndex = 0;
       }
-      
+
       const nextSet = currentFilteredProducts.slice(currentIndex, currentIndex + PRODUCTS_PER_LOAD);
-      
+
       if (nextSet.length === 0 && currentIndex === 0) {
         listWrapper.innerHTML = `
           <div style="font-size: 13px; color: #666; padding: 20px; text-align: center; background: #f9f9f9; border-radius: 8px;">
@@ -413,7 +413,7 @@ document.addEventListener("DOMContentLoaded", () => {
         loadMoreContainer.style.display = "none";
         renderQuickOptions(); // Show options when all products are loaded
       }
-      
+
       scrollToBottom();
     };
 
@@ -467,14 +467,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (loadMoreBtn) {
       loadMoreBtn.addEventListener("click", () => updateDisplay());
     }
-    
+
     scrollToBottom();
   }
 
   function renderProductDetails(product) {
     appendMessage("user", `Details for ${product.title}`);
     const indicator = appendTypingIndicator();
-    
+
     setTimeout(() => {
       if (indicator && indicator.parentNode) indicator.parentNode.removeChild(indicator);
       const isOutOfStock = !product.available;
@@ -495,11 +495,11 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       `;
       chatBody.appendChild(detailsCard);
-      
+
       detailsCard.querySelector('.btn-buy-detail').addEventListener('click', () => handleAddToCart(product.variant_id, product.title, true));
       detailsCard.querySelector('.btn-atc-detail').addEventListener('click', () => handleAddToCart(product.variant_id, product.title, false));
       detailsCard.querySelector('.btn-enquire-detail').addEventListener('click', () => { selectedProduct = product; startEnquiryFlow(); });
-      
+
       scrollToBottom();
       renderQuickOptions();
     }, 800);
@@ -521,12 +521,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const container = document.createElement("div");
     container.className = "ai-chatbot-message bot";
     container.innerHTML = `
-      <div class="ai-chatbot-form">
-        <div class="ai-chatbot-form-title">Enquiry Details</div>
-        <input type="text" id="ai-name" placeholder="Full Name" required>
-        <input type="email" id="ai-email" placeholder="Email/Phone" required>
-        <textarea id="ai-msg" placeholder="Message..."></textarea>
-        <button id="ai-submit">Submit Enquiry</button>
+      <div class="chatbot-form">
+        <p class="form-title">Enquiry Details</p>
+
+        <input type="text" id="ai-name" placeholder="Full Name" class="chat-input" required />
+        <input type="text" id="ai-email" placeholder="Email / Phone" class="chat-input" required />
+        <textarea id="ai-msg" placeholder="Message..." class="chat-textarea"></textarea>
+
+        <button id="ai-submit" class="chat-submit-btn">Submit Enquiry</button>
       </div>
     `;
     chatBody.appendChild(container);
@@ -623,32 +625,35 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     appendMessage("bot", "Here are your recent orders from the online store:");
-    
+
     const listEl = document.createElement("div");
     listEl.className = "ai-chatbot-order-list";
-    
+
     orders.forEach((order, idx) => {
       const card = document.createElement("div");
-      card.className = "ai-chatbot-order-card";
+      card.className = "order-card ai-chatbot-order-card";
       card.innerHTML = `
         <div class="ai-order-card-header">
           <strong>Order ${order.name}</strong>
           <span class="ai-order-status-badge">${order.status || 'Verified'}</span>
         </div>
         <div class="ai-order-card-body">
-          <div>Date: ${order.date}</div>
-          <div>Total: ${order.total}</div>
+          <p><strong>Order ID:</strong> ${order.id}</p>
+          <p><strong>Status:</strong> ${order.status}</p>
+          <p><strong>Total:</strong> ${order.total}</p>
+          <p><strong>Date:</strong> ${order.date}</p>
         </div>
         <div class="ai-order-card-actions">
           <button class="ai-chatbot-btn-secondary btn-order-details" data-idx="${idx}">View Details</button>
+          <button class="cancel-order-btn" data-id="${order.id}" data-name="${order.name}">Cancel Order</button>
           <a href="${order.url}" target="_blank" class="ai-order-link">Track Order →</a>
         </div>
       `;
       listEl.appendChild(card);
     });
-    
+
     chatBody.appendChild(listEl);
-    
+
     listEl.querySelectorAll('.btn-order-details').forEach(btn => {
       btn.addEventListener('click', () => {
         const orderIdx = parseInt(btn.getAttribute('data-idx') || '0');
@@ -663,13 +668,13 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderOrderDetails(order) {
     appendMessage("user", `View details for ${order.name}`);
     const indicator = appendTypingIndicator();
-    
+
     setTimeout(() => {
       if (indicator && indicator.parentNode) indicator.parentNode.removeChild(indicator);
-      
+
       const detailsEl = document.createElement("div");
       detailsEl.className = "ai-chatbot-message bot";
-      
+
       let itemsHtml = order.items.map(item => `
         <div class="ai-order-item">
           <img src="${item.image}" alt="${item.title}" class="ai-order-item-img">
@@ -694,6 +699,68 @@ document.addEventListener("DOMContentLoaded", () => {
       renderQuickOptions();
       scrollToBottom();
     }, 600);
+  }
+
+  const CANCEL_ORDER_API_URL = "https://script.google.com/macros/s/AKfycbztv7rS0G4aC8tU1qgNPeaR8ttYT2-0sInNT-QaadLtMlDLgePgWqE34vZqyfk0eGn07A/exec";
+
+  // Event Delegation for Cancel Order
+  document.addEventListener("click", function (e) {
+    if (e.target.classList.contains("cancel-order-btn")) {
+      const orderId = e.target.dataset.id;
+      handleCancelOrder(orderId);
+    }
+  });
+
+  function handleCancelOrder(orderId) {
+    const confirmCancel = confirm("Are you sure you want to cancel this order?");
+    if (!confirmCancel) return;
+
+    console.log("Cancelling order:", orderId);
+    const indicator = appendTypingIndicator();
+
+    fetch(CANCEL_ORDER_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        type: "cancel_order",
+        order_id: orderId,
+        email: window.customerEmail,
+        reason: "User requested cancellation"
+      })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (indicator && indicator.parentNode) indicator.parentNode.removeChild(indicator);
+
+        if (data.status === "success") {
+          appendMessage("bot", "✅ Your cancellation request has been submitted successfully.");
+
+          // Find the specific card and update UI
+          const btn = document.querySelector(`.cancel-order-btn[data-id="${orderId}"]`);
+          if (btn) {
+            const card = btn.closest('.ai-chatbot-order-card');
+            if (card) {
+              const badge = card.querySelector('.ai-order-status-badge');
+              if (badge) {
+                badge.textContent = "Cancellation Requested";
+                badge.classList.add('status-cancelled');
+              }
+              btn.remove();
+            }
+          }
+        } else {
+          appendMessage("bot", "❌ Failed to submit cancellation request. Please try again or contact support.");
+        }
+        renderQuickOptions();
+      })
+      .catch(err => {
+        console.error("Cancel Order Error:", err);
+        if (indicator && indicator.parentNode) indicator.parentNode.removeChild(indicator);
+        appendMessage("bot", "Something went wrong. Please try again.");
+        renderQuickOptions();
+      });
   }
 
   if (sendBtn) sendBtn.addEventListener("click", () => handleUserSubmit());

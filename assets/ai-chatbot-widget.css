@@ -656,3 +656,102 @@
     display: none;
   }
 }
+
+/* Chatbot Body Fix */
+.ai-chatbot-body {
+  overflow-x: hidden !important;
+}
+
+/* Product Enquiry Form Styles */
+.chatbot-form {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  padding: 12px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  background: #f9f9f9 !important;
+  border-radius: 10px !important;
+  margin-top: 10px;
+}
+
+.form-title {
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  margin-bottom: 5px !important;
+  color: #1a1a1a;
+}
+
+.chat-input,
+.chat-textarea {
+  width: 100% !important;
+  padding: 10px 12px !important;
+  border: 1px solid #ddd !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  box-sizing: border-box !important;
+  background: #fff !important;
+  outline: none !important;
+}
+
+.chat-textarea {
+  min-height: 80px !important;
+  resize: none !important;
+}
+
+.chat-submit-btn {
+  width: 100% !important;
+  padding: 12px !important;
+  border-radius: 8px !important;
+  border: none !important;
+  background-color: #000 !important;
+  color: #fff !important;
+  font-size: 14px !important;
+  cursor: pointer !important;
+  font-weight: 600 !important;
+  transition: background 0.2s ease;
+}
+
+.chat-submit-btn:hover {
+  background-color: #333 !important;
+}
+
+/* Order History Visual Fixes */
+.order-card {
+  padding: 12px !important;
+  border: 1px solid #eee !important;
+  border-radius: 8px !important;
+  margin-bottom: 10px !important;
+  background: #fff !important;
+}
+
+.order-card p {
+  margin: 4px 0 !important;
+  font-size: 13px !important;
+}
+
+.cancel-order-btn {
+  display: inline-block !important;
+  margin-top: 8px !important;
+  padding: 8px 12px !important;
+  border: none !important;
+  border-radius: 6px !important;
+  background: #dc2626 !important;
+  color: white !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+}
+
+/* Order Cancellation Status Badge (Legacy Support) */
+.ai-order-status-badge.status-cancelled {
+  background: #fdf2f2 !important;
+  color: #9b1c1c !important;
+  border-color: #f8b4b4 !important;
+}
+
+@media screen and (max-width: 480px) {
+  .chat-input, .chat-textarea, .chat-submit-btn {
+    font-size: 16px !important;
+  }
+}
