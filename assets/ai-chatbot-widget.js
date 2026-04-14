@@ -633,20 +633,16 @@ document.addEventListener("DOMContentLoaded", () => {
       const card = document.createElement("div");
       card.className = "order-card ai-chatbot-order-card";
       card.innerHTML = `
-        <div class="ai-order-card-header">
-          <strong>Order ${order.name}</strong>
-          <span class="ai-order-status-badge">${order.status || 'Verified'}</span>
-        </div>
-        <div class="ai-order-card-body">
-          <p><strong>Order ID:</strong> ${order.id}</p>
-          <p><strong>Status:</strong> ${order.status}</p>
-          <p><strong>Total:</strong> ${order.total}</p>
-          <p><strong>Date:</strong> ${order.date}</p>
-        </div>
-        <div class="ai-order-card-actions">
-          <button class="ai-chatbot-btn-secondary btn-order-details" data-idx="${idx}">View Details</button>
-          <button class="cancel-order-btn" data-id="${order.id}" data-name="${order.name}">Cancel Order</button>
-          <a href="${order.url}" target="_blank" class="ai-order-link">Track Order →</a>
+        <p><strong>Order:</strong> ${order.id}</p>
+        <p><strong>Status:</strong> ${order.status}</p>
+        <p><strong>Total:</strong> ${order.total}</p>
+
+        <button class="cancel-order-btn" data-id="${order.id}">
+          Cancel Order
+        </button>
+        <div class="ai-order-card-actions" style="margin-top:10px;">
+          <button class="ai-chatbot-btn-secondary btn-order-details" data-idx="${idx}" style="font-size:11px; padding:4px 8px;">View Items</button>
+          <a href="${order.url}" target="_blank" class="ai-order-link" style="font-size:11px;">Track →</a>
         </div>
       `;
       listEl.appendChild(card);
@@ -720,14 +716,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     fetch(CANCEL_ORDER_API_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
       body: JSON.stringify({
         type: "cancel_order",
         order_id: orderId,
         email: window.customerEmail,
-        reason: "User requested cancellation"
+        reason: "Customer requested cancellation"
       })
     })
       .then(res => res.json())

@@ -731,16 +731,21 @@
 }
 
 .cancel-order-btn {
-  display: inline-block !important;
+  width: 100% !important;
   margin-top: 8px !important;
-  padding: 8px 12px !important;
+  padding: 10px !important;
   border: none !important;
   border-radius: 6px !important;
-  background: #dc2626 !important;
-  color: white !important;
-  font-size: 12px !important;
+  background: red !important;
+  color: #fff !important;
+  font-size: 14px !important;
   font-weight: 600 !important;
   cursor: pointer !important;
+  transition: opacity 0.2s ease !important;
+}
+
+.cancel-order-btn:hover {
+  opacity: 0.8 !important;
 }
 
 /* Order Cancellation Status Badge (Legacy Support) */
