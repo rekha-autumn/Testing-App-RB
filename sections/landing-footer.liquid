@@ -1,0 +1,122 @@
+<div class="landing-page-body">
+<footer class="site-footer" style="background-color: {{ section.settings.bg_color }}; padding-top: {{ section.settings.padding_top }}px; padding-bottom: {{ section.settings.padding_bottom }}px;">
+  
+  {% if section.settings.logo_image != blank %}
+    <img src="{{ section.settings.logo_image | image_url: width: 300 }}" alt="{{ shop.name }}" class="footer-logo-img" loading="lazy">
+  {% else %}
+    <div class="footer-logo" style="color: {{ section.settings.logo_color }};">{{ section.settings.logo_text }}</div>
+  {% endif %}
+
+  <nav class="footer-nav">
+    {% for link in section.settings.menu.links %}
+      <a href="{{ link.url }}" class="footer-link" style="color: {{ section.settings.link_color }};">{{ link.title }}</a>
+    {% else %}
+      <a href="#" class="footer-link" style="color: {{ section.settings.link_color }};">Terms</a>
+      <a href="#" class="footer-link" style="color: {{ section.settings.link_color }};">Privacy</a>
+      <a href="#" class="footer-link" style="color: {{ section.settings.link_color }};">Support</a>
+      <a href="#" class="footer-link" style="color: {{ section.settings.link_color }};">Track Order</a>
+    {% endfor %}
+  </nav>
+
+  <div class="footer-copyright" style="color: {{ section.settings.copyright_color }};">
+    © {{ 'now' | date: "%Y" }} {{ shop.name | upcase }}. {{ section.settings.copyright_text }}
+  </div>
+</footer>
+</div>
+
+<style>
+.footer-logo-img {
+  max-width: {{ section.settings.logo_width }}px;
+  height: auto;
+  margin-bottom: 8px;
+}
+</style>
+
+{% schema %}
+{
+  "name": "Landing Footer",
+  "settings": [
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background Color",
+      "default": "#0e0e0e"
+    },
+    {
+      "type": "text",
+      "id": "logo_text",
+      "label": "Logo Text",
+      "default": "FLASHDEALS"
+    },
+    {
+      "type": "color",
+      "id": "logo_color",
+      "label": "Logo Text Color",
+      "default": "#ffb4aa"
+    },
+    {
+      "type": "image_picker",
+      "id": "logo_image",
+      "label": "Logo Image"
+    },
+    {
+      "type": "range",
+      "id": "logo_width",
+      "min": 50,
+      "max": 300,
+      "step": 10,
+      "unit": "px",
+      "label": "Custom logo width",
+      "default": 150
+    },
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "Footer Menu"
+    },
+    {
+      "type": "color",
+      "id": "link_color",
+      "label": "Link Color",
+      "default": "#e7bdb7"
+    },
+    {
+      "type": "text",
+      "id": "copyright_text",
+      "label": "Copyright Text",
+      "default": "AUGUST 15th SPECIAL - LIMITED TIME ONLY."
+    },
+    {
+      "type": "color",
+      "id": "copyright_color",
+      "label": "Copyright Text Color",
+      "default": "#e7bdb7"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding Top",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 150,
+      "step": 5,
+      "unit": "px",
+      "label": "Padding Bottom",
+      "default": 100
+    }
+  ],
+  "presets": [
+    {
+      "name": "Landing Footer"
+    }
+  ]
+}
+{% endschema %}
