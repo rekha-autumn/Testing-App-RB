@@ -1,0 +1,136 @@
+<div class="landing-page-body">
+<section class="urgency-banner" style="background-color: {{ section.settings.bg_color }}; padding-top: {{ section.settings.padding_top }}px; padding-bottom: {{ section.settings.padding_bottom }}px;">
+  
+  {% if section.settings.show_pattern %}
+    <div class="urgency-pattern" style="opacity: {{ section.settings.pattern_opacity }};"></div>
+  {% endif %}
+  
+  <div class="urgency-content">
+    <h2 class="text-gradient-urgency" style="background: linear-gradient(90deg, {{ section.settings.gradient_1 }}, {{ section.settings.gradient_2 }}, {{ section.settings.gradient_3 }}); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+      {{ section.settings.title }}
+    </h2>
+    <p class="urgency-text" style="color: {{ section.settings.text_color }};">
+      {{ section.settings.text }}
+    </p>
+    
+    {% if section.settings.button_text != blank %}
+      <a href="{{ section.settings.button_link }}" class="btn-secondary" style="background-color: {{ section.settings.button_bg_color }}; color: {{ section.settings.button_text_color }};">
+        {{ section.settings.button_text }}
+      </a>
+    {% endif %}
+  </div>
+</section>
+</div>
+
+{% schema %}
+{
+  "name": "Landing Urgency Banner",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Heading",
+      "default": "HURRY! AUGUST 15th DEALS EXPIRE SOON"
+    },
+    {
+      "type": "color",
+      "id": "gradient_1",
+      "label": "Gradient Color 1",
+      "default": "#ffb4aa"
+    },
+    {
+      "type": "color",
+      "id": "gradient_2",
+      "label": "Gradient Color 2",
+      "default": "#ff3b30"
+    },
+    {
+      "type": "color",
+      "id": "gradient_3",
+      "label": "Gradient Color 3",
+      "default": "#fe9400"
+    },
+    {
+      "type": "textarea",
+      "id": "text",
+      "label": "Text",
+      "default": "Items in your cart are not reserved. Secure yours before the timer hits zero."
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text Color",
+      "default": "#e7bdb7"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button Text",
+      "default": "SECURE MY DEALS"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button Link"
+    },
+    {
+      "type": "color",
+      "id": "button_bg_color",
+      "label": "Button Background",
+      "default": "#e5e2e1"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Button Text Color",
+      "default": "#131313"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background Color",
+      "default": "#0e0e0e"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_pattern",
+      "label": "Show Background Pattern",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "pattern_opacity",
+      "min": 0,
+      "max": 1,
+      "step": 0.1,
+      "label": "Pattern Opacity",
+      "default": 0.3
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 150,
+      "step": 5,
+      "unit": "px",
+      "label": "Padding Top",
+      "default": 80
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 150,
+      "step": 5,
+      "unit": "px",
+      "label": "Padding Bottom",
+      "default": 80
+    }
+  ],
+  "presets": [
+    {
+      "name": "Landing Urgency Banner"
+    }
+  ]
+}
+{% endschema %}
