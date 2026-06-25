@@ -211,3 +211,27 @@
             el.addEventListener('mouseleave', () => el.style.transform = 'scale(1)');
         });
     </script>
+
+{% schema %}
+{
+  "name": "Flash Sale Landing",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "August 15 Sale"
+    },
+    {
+      "type": "collection",
+      "id": "sale_collection",
+      "label": "Sale Collection"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Flash Sale Landing"
+    }
+  ]
+}
+{% endschema %}
