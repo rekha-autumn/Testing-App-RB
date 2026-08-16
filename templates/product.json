@@ -785,6 +785,55 @@
         "padding-block-end": 32
       }
     },
+    "gsap_showcase": {
+      "type": "gsap-product-showcase",
+      "blocks": {
+        "card_1": {
+          "type": "feature_card",
+          "settings": {
+            "icon_emoji": "🏆",
+            "title": "Premium Quality",
+            "description": "Crafted from top-grade materials tested for lasting durability."
+          }
+        },
+        "card_2": {
+          "type": "feature_card",
+          "settings": {
+            "icon_emoji": "🚚",
+            "title": "Fast Shipping",
+            "description": "Orders dispatched within 24 hours — straight to your door."
+          }
+        },
+        "card_3": {
+          "type": "feature_card",
+          "settings": {
+            "icon_emoji": "🔒",
+            "title": "Safe & Secure",
+            "description": "256-bit encrypted checkout. Shop with total confidence."
+          }
+        },
+        "card_4": {
+          "type": "feature_card",
+          "settings": {
+            "icon_emoji": "♻️",
+            "title": "Eco Conscious",
+            "description": "Sustainably sourced and packaged in recycled materials."
+          }
+        }
+      },
+      "block_order": ["card_1", "card_2", "card_3", "card_4"],
+      "settings": {
+        "heading": "Why You'll Love It",
+        "subheading": "Built for the way you live — every detail crafted with intention.",
+        "stat1_num": "10K+",
+        "stat1_lbl": "Happy Customers",
+        "stat2_num": "4.9★",
+        "stat2_lbl": "Average Rating",
+        "stat3_num": "30-Day",
+        "stat3_lbl": "Free Returns",
+        "cta_text": "Add to Cart"
+      }
+    },
     "section_NaqU9X": {
       "type": "section",
       "blocks": {
@@ -1083,6 +1132,7 @@
   },
   "order": [
     "main",
+    "gsap_showcase",
     "section_NaqU9X",
     "product_list_zR9Cym"
   ]

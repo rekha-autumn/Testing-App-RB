@@ -1,0 +1,806 @@
+{% comment %}
+  gsap-product-showcase.liquid
+  A bold, animated "Why You'll Love It" section for the PDP.
+  Includes: animated stat counters, feature cards with staggered reveal,
+  a scroll-drawn progress bar, and a pulsing CTA — all powered by GSAP + ScrollTrigger.
+{% endcomment %}
+
+{%- liquid
+  assign heading    = section.settings.heading    | default: "Why You'll Love It"
+  assign subheading = section.settings.subheading | default: "Built for the way you live — every detail crafted with intention."
+  assign stat1_num  = section.settings.stat1_num  | default: "10K"
+  assign stat1_lbl  = section.settings.stat1_lbl  | default: "Happy Customers"
+  assign stat2_num  = section.settings.stat2_num  | default: "4.9"
+  assign stat2_lbl  = section.settings.stat2_lbl  | default: "Average Rating"
+  assign stat3_num  = section.settings.stat3_num  | default: "30"
+  assign stat3_lbl  = section.settings.stat3_lbl  | default: "Day Returns"
+  assign cta_text   = section.settings.cta_text   | default: "Add to Cart"
+  assign cta_url    = section.settings.cta_url    | default: "#"
+-%}
+
+<section
+  id="gsap-showcase-{{ section.id }}"
+  class="gsap-showcase"
+  data-section-id="{{ section.id }}"
+>
+
+  {%- comment -%} ── HEADER ─────────────────────────────────────── {%- endcomment -%}
+  <div class="gsap-showcase__header">
+    <div class="gsap-showcase__tag showcase-tag">✦ EXCLUSIVE FEATURES</div>
+    <h2 class="gsap-showcase__heading showcase-heading">{{ heading }}</h2>
+    <p  class="gsap-showcase__subheading showcase-subheading">{{ subheading }}</p>
+    <div class="gsap-showcase__line showcase-line"></div>
+  </div>
+
+  {%- comment -%} ── ANIMATED STAT COUNTERS ──────────────────────── {%- endcomment -%}
+  <div class="gsap-showcase__stats">
+    <div class="gsap-showcase__stat showcase-stat" data-stat-target="{{ stat1_num }}">
+      <span class="showcase-stat__number">{{ stat1_num }}</span>
+      <span class="showcase-stat__label">{{ stat1_lbl }}</span>
+      <div class="showcase-stat__dot"></div>
+    </div>
+    <div class="gsap-showcase__divider"></div>
+    <div class="gsap-showcase__stat showcase-stat" data-stat-target="{{ stat2_num }}">
+      <span class="showcase-stat__number">{{ stat2_num }}</span>
+      <span class="showcase-stat__label">{{ stat2_lbl }}</span>
+      <div class="showcase-stat__dot"></div>
+    </div>
+    <div class="gsap-showcase__divider"></div>
+    <div class="gsap-showcase__stat showcase-stat" data-stat-target="{{ stat3_num }}">
+      <span class="showcase-stat__number">{{ stat3_num }}</span>
+      <span class="showcase-stat__label">{{ stat3_lbl }}</span>
+      <div class="showcase-stat__dot"></div>
+    </div>
+  </div>
+
+  {%- comment -%} ── SCROLL PROGRESS BAR ─────────────────────────── {%- endcomment -%}
+  <div class="gsap-showcase__progress-track">
+    <div class="gsap-showcase__progress-bar showcase-progress-bar"></div>
+    <div class="gsap-showcase__progress-glow"></div>
+  </div>
+
+  {%- comment -%} ── FEATURE CARDS ───────────────────────────────── {%- endcomment -%}
+  <div class="gsap-showcase__cards">
+    {%- for block in section.blocks -%}
+      {%- if block.type == 'feature_card' -%}
+        <div
+          class="gsap-showcase__card showcase-card"
+          {{ block.shopify_attributes }}
+          data-card-index="{{ forloop.index0 }}"
+        >
+          <div class="showcase-card__icon-wrap">
+            <span class="showcase-card__icon">{{ block.settings.icon_emoji | default: "✦" }}</span>
+          </div>
+          <h3 class="showcase-card__title">{{ block.settings.title | default: "Feature" }}</h3>
+          <p  class="showcase-card__text">{{ block.settings.description | default: "Describe this feature here." }}</p>
+          <div class="showcase-card__reveal-line"></div>
+        </div>
+      {%- endif -%}
+    {%- else -%}
+      {%- comment -%} Default cards when no blocks added {%- endcomment -%}
+      {%- assign defaults = "🏆,Premium Quality,Crafted from top-grade materials tested for lasting durability.|🚚,Fast Shipping,Orders dispatched within 24 hours — straight to your door.|🔒,Safe & Secure,256-bit encrypted checkout. Shop with total confidence.|♻️,Eco Conscious,Sustainably sourced and packaged in recycled materials." | split: "|" -%}
+      {%- for card in defaults -%}
+        {%- assign parts = card | split: "," -%}
+        <div class="gsap-showcase__card showcase-card" data-card-index="{{ forloop.index0 }}">
+          <div class="showcase-card__icon-wrap">
+            <span class="showcase-card__icon">{{ parts[0] }}</span>
+          </div>
+          <h3 class="showcase-card__title">{{ parts[1] }}</h3>
+          <p  class="showcase-card__text">{{ parts[2] }}</p>
+          <div class="showcase-card__reveal-line"></div>
+        </div>
+      {%- endfor -%}
+    {%- endfor -%}
+  </div>
+
+  {%- comment -%} ── ANIMATED CTA STRIP ──────────────────────────── {%- endcomment -%}
+  <div class="gsap-showcase__cta showcase-cta">
+    <p class="showcase-cta__copy">Ready to experience the difference?</p>
+    <a href="{{ cta_url }}" class="showcase-cta__btn showcase-cta-btn" id="gsap-cta-btn-{{ section.id }}">
+      <span class="showcase-cta-btn__text">{{ cta_text }}</span>
+      <span class="showcase-cta-btn__arrow">→</span>
+    </a>
+  </div>
+
+</section>
+
+{%- comment -%} ═══════════════════════════════ STYLES ═══════════════════════════════ {%- endcomment -%}
+{% stylesheet %}
+
+  /* ── Root tokens for this section ─────────────────────────────── */
+  .gsap-showcase {
+    --showcase-accent:   #6c63ff;
+    --showcase-accent2:  #ff6584;
+    --showcase-bg:       #0d0d14;
+    --showcase-surface:  #17172a;
+    --showcase-border:   rgba(108,99,255,0.25);
+    --showcase-text:     #e8e6ff;
+    --showcase-muted:    rgba(232,230,255,0.55);
+    --showcase-radius:   18px;
+    --showcase-gap:      28px;
+
+    position: relative;
+    background: var(--showcase-bg);
+    color:      var(--showcase-text);
+    padding:    80px 40px 100px;
+    overflow:   hidden;
+    font-family: inherit;
+  }
+
+  /* Ambient background glow blobs */
+  .gsap-showcase::before,
+  .gsap-showcase::after {
+    content:       '';
+    position:      absolute;
+    border-radius: 50%;
+    filter:        blur(120px);
+    pointer-events: none;
+    z-index:       0;
+  }
+  .gsap-showcase::before {
+    width:      500px;
+    height:     500px;
+    background: radial-gradient(circle, rgba(108,99,255,0.25) 0%, transparent 70%);
+    top:    -100px;
+    left:   -100px;
+  }
+  .gsap-showcase::after {
+    width:      400px;
+    height:     400px;
+    background: radial-gradient(circle, rgba(255,101,132,0.2) 0%, transparent 70%);
+    bottom: -80px;
+    right:  -80px;
+  }
+
+  .gsap-showcase > * { position: relative; z-index: 1; }
+
+  /* ── HEADER ──────────────────────────────────────────────────── */
+  .gsap-showcase__header {
+    text-align: center;
+    max-width:  700px;
+    margin:     0 auto 60px;
+  }
+
+  .showcase-tag {
+    display:        inline-block;
+    font-size:      11px;
+    font-weight:    700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color:          var(--showcase-accent);
+    background:     rgba(108,99,255,0.12);
+    border:         1px solid var(--showcase-border);
+    border-radius:  100px;
+    padding:        6px 18px;
+    margin-bottom:  20px;
+    opacity: 0; /* animated in */
+  }
+
+  .showcase-heading {
+    font-size:   clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    margin:      0 0 16px;
+    background:  linear-gradient(135deg, #fff 0%, var(--showcase-accent) 60%, var(--showcase-accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    opacity: 0; /* animated in */
+  }
+
+  .showcase-subheading {
+    font-size:   1.05rem;
+    color:       var(--showcase-muted);
+    line-height: 1.65;
+    margin:      0 0 30px;
+    opacity: 0; /* animated in */
+  }
+
+  .showcase-line {
+    height:        3px;
+    background:    linear-gradient(90deg, transparent, var(--showcase-accent), var(--showcase-accent2), transparent);
+    border-radius: 100px;
+    transform-origin: left;
+    transform:    scaleX(0);
+  }
+
+  /* ── STATS ───────────────────────────────────────────────────── */
+  .gsap-showcase__stats {
+    display:         flex;
+    align-items:     center;
+    justify-content: center;
+    gap:             0;
+    flex-wrap:       wrap;
+    margin-bottom:   50px;
+    background:      var(--showcase-surface);
+    border:          1px solid var(--showcase-border);
+    border-radius:   var(--showcase-radius);
+    padding:         36px 40px;
+    opacity: 0; /* animated in */
+  }
+
+  .gsap-showcase__divider {
+    width:  1px;
+    height: 56px;
+    background: var(--showcase-border);
+    margin: 0 48px;
+  }
+
+  .gsap-showcase__stat {
+    text-align: center;
+    position:   relative;
+  }
+
+  .showcase-stat__number {
+    display:     block;
+    font-size:   clamp(2.2rem, 4vw, 3rem);
+    font-weight: 900;
+    background:  linear-gradient(135deg, #fff 0%, var(--showcase-accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .showcase-stat__label {
+    font-size:  0.78rem;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--showcase-muted);
+  }
+
+  .showcase-stat__dot {
+    width:     8px;
+    height:    8px;
+    background: var(--showcase-accent);
+    border-radius: 50%;
+    margin:    10px auto 0;
+    transform: scale(0); /* animated */
+  }
+
+  /* ── PROGRESS BAR ────────────────────────────────────────────── */
+  .gsap-showcase__progress-track {
+    position:      relative;
+    height:        4px;
+    background:    rgba(255,255,255,0.08);
+    border-radius: 100px;
+    margin-bottom: 50px;
+    overflow:      visible;
+  }
+
+  .showcase-progress-bar {
+    height:        100%;
+    width:         0%;
+    background:    linear-gradient(90deg, var(--showcase-accent), var(--showcase-accent2));
+    border-radius: 100px;
+    position:      relative;
+  }
+
+  .gsap-showcase__progress-glow {
+    position: absolute;
+    top:    50%;
+    left:   0;
+    transform: translateY(-50%);
+    width:  30px;
+    height: 30px;
+    background: var(--showcase-accent);
+    border-radius: 50%;
+    filter: blur(12px);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* ── CARDS ───────────────────────────────────────────────────── */
+  .gsap-showcase__cards {
+    display:               grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap:                   var(--showcase-gap);
+    margin-bottom:         60px;
+  }
+
+  .showcase-card {
+    background:    var(--showcase-surface);
+    border:        1px solid var(--showcase-border);
+    border-radius: var(--showcase-radius);
+    padding:       36px 28px;
+    position:      relative;
+    overflow:      hidden;
+    cursor:        default;
+    opacity: 0; /* animated in */
+    transform: translateY(60px); /* animated in */
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .showcase-card:hover {
+    border-color: var(--showcase-accent);
+    box-shadow:   0 20px 60px rgba(108,99,255,0.25);
+  }
+
+  /* Shimmer sweep on hover */
+  .showcase-card::after {
+    content:  '';
+    position: absolute;
+    inset:    0;
+    background: linear-gradient(
+      115deg,
+      transparent 0%,
+      rgba(255,255,255,0.04) 40%,
+      rgba(255,255,255,0.08) 50%,
+      rgba(255,255,255,0.04) 60%,
+      transparent 100%
+    );
+    transform:   translateX(-100%);
+    transition:  transform 0.6s ease;
+    pointer-events: none;
+  }
+
+  .showcase-card:hover::after {
+    transform: translateX(100%);
+  }
+
+  .showcase-card__icon-wrap {
+    width:          56px;
+    height:         56px;
+    background:     rgba(108,99,255,0.12);
+    border:         1px solid var(--showcase-border);
+    border-radius:  14px;
+    display:        flex;
+    align-items:    center;
+    justify-content: center;
+    margin-bottom:  20px;
+    transform: scale(0); /* animated */
+  }
+
+  .showcase-card__icon {
+    font-size: 1.6rem;
+    line-height: 1;
+  }
+
+  .showcase-card__title {
+    font-size:   1.1rem;
+    font-weight: 700;
+    color:       #fff;
+    margin:      0 0 10px;
+  }
+
+  .showcase-card__text {
+    font-size:   0.88rem;
+    color:       var(--showcase-muted);
+    line-height: 1.6;
+    margin:      0 0 20px;
+  }
+
+  .showcase-card__reveal-line {
+    height:        2px;
+    background:    linear-gradient(90deg, var(--showcase-accent), var(--showcase-accent2));
+    border-radius: 100px;
+    transform-origin: left;
+    transform:    scaleX(0);
+  }
+
+  /* ── CTA STRIP ───────────────────────────────────────────────── */
+  .gsap-showcase__cta {
+    display:         flex;
+    align-items:     center;
+    justify-content: space-between;
+    gap:             24px;
+    flex-wrap:       wrap;
+    background: linear-gradient(135deg, rgba(108,99,255,0.15), rgba(255,101,132,0.12));
+    border:          1px solid var(--showcase-border);
+    border-radius:   var(--showcase-radius);
+    padding:         36px 48px;
+    opacity: 0; /* animated in */
+    transform: translateY(30px); /* animated in */
+  }
+
+  .showcase-cta__copy {
+    font-size:   1.3rem;
+    font-weight: 700;
+    color:       #fff;
+    margin:      0;
+  }
+
+  .showcase-cta-btn {
+    display:         inline-flex;
+    align-items:     center;
+    gap:             10px;
+    background:      linear-gradient(135deg, var(--showcase-accent), var(--showcase-accent2));
+    color:           #fff;
+    font-size:       0.95rem;
+    font-weight:     700;
+    text-decoration: none;
+    padding:         14px 32px;
+    border-radius:   100px;
+    white-space:     nowrap;
+    letter-spacing:  0.5px;
+    transition:      transform 0.25s ease, box-shadow 0.25s ease;
+    box-shadow: 0 0 0 rgba(108,99,255,0.4);
+  }
+
+  .showcase-cta-btn:hover {
+    transform:  translateY(-3px) scale(1.03);
+    box-shadow: 0 12px 40px rgba(108,99,255,0.5);
+  }
+
+  .showcase-cta-btn__arrow {
+    display:    inline-block;
+    transition: transform 0.25s ease;
+  }
+
+  .showcase-cta-btn:hover .showcase-cta-btn__arrow {
+    transform: translateX(5px);
+  }
+
+  /* ── Responsive ──────────────────────────────────────────────── */
+  @media (max-width: 749px) {
+    .gsap-showcase {
+      padding: 60px 20px 80px;
+    }
+
+    .gsap-showcase__divider { margin: 0 24px; }
+
+    .gsap-showcase__cta {
+      flex-direction: column;
+      text-align: center;
+      padding: 30px 24px;
+    }
+
+    .showcase-cta__copy { font-size: 1.1rem; }
+  }
+
+{% endstylesheet %}
+
+{%- comment -%} ═══════════════════════════════ GSAP SCRIPT ════════════════════════════ {%- endcomment -%}
+<script>
+(function () {
+  'use strict';
+
+  function initShowcase(sectionId) {
+    if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
+      console.warn('[GSAP Showcase] GSAP or ScrollTrigger not loaded.');
+      return;
+    }
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    const root = document.getElementById('gsap-showcase-' + sectionId);
+    if (!root) return;
+
+    /* ── Shared ScrollTrigger defaults ── */
+    const st = (trigger, extra) => ({
+      trigger,
+      start:         'top 80%',
+      toggleActions: 'play none none none',
+      ...extra,
+    });
+
+    /* ────────────────────────────────────────────────────────────
+       1. HEADER — tag → heading → subheading → line
+    ──────────────────────────────────────────────────────────── */
+    const tl = gsap.timeline({ scrollTrigger: st(root) });
+
+    tl.to(root.querySelector('.showcase-tag'), {
+        opacity: 1, y: 0,
+        duration: 0.6, ease: 'power3.out',
+        from: { opacity: 0, y: -20 },
+      })
+      .to(root.querySelector('.showcase-heading'), {
+        opacity: 1, y: 0,
+        duration: 0.8, ease: 'power3.out',
+        from: { opacity: 0, y: 30 },
+      }, '-=0.35')
+      .to(root.querySelector('.showcase-subheading'), {
+        opacity: 1, y: 0,
+        duration: 0.7, ease: 'power2.out',
+        from: { opacity: 0, y: 20 },
+      }, '-=0.4')
+      .to(root.querySelector('.showcase-line'), {
+        scaleX:   1,
+        duration: 0.9,
+        ease:     'power3.inOut',
+      }, '-=0.3');
+
+    /* Correct initial states for header elements */
+    gsap.set(root.querySelector('.showcase-tag'),        { opacity: 0, y: -20 });
+    gsap.set(root.querySelector('.showcase-heading'),    { opacity: 0, y:  30 });
+    gsap.set(root.querySelector('.showcase-subheading'), { opacity: 0, y:  20 });
+
+    /* ────────────────────────────────────────────────────────────
+       2. STATS BLOCK — fade in → dots pulse → numbers count up
+    ──────────────────────────────────────────────────────────── */
+    const statsEl = root.querySelector('.gsap-showcase__stats');
+    gsap.to(statsEl, {
+      scrollTrigger: st(statsEl),
+      opacity: 1, y: 0,
+      duration: 0.7, ease: 'power2.out',
+      from: { opacity: 0, y: 40 },
+    });
+    gsap.set(statsEl, { opacity: 0, y: 40 });
+
+    // Pulsing dots
+    root.querySelectorAll('.showcase-stat__dot').forEach((dot, i) => {
+      gsap.to(dot, {
+        scrollTrigger: st(statsEl),
+        scale:    1,
+        duration: 0.5,
+        delay:    0.4 + i * 0.15,
+        ease:     'back.out(2)',
+      });
+      // Perpetual pulse after appear
+      ScrollTrigger.create({
+        trigger: statsEl,
+        start:   'top 80%',
+        onEnter: () => {
+          gsap.to(dot, {
+            scale:    1.6,
+            opacity:  0.5,
+            duration: 0.8,
+            repeat:   -1,
+            yoyo:     true,
+            ease:     'sine.inOut',
+            delay:    0.9 + i * 0.15,
+          });
+        },
+      });
+    });
+
+    /* ────────────────────────────────────────────────────────────
+       3. PROGRESS BAR — draw across on scroll
+    ──────────────────────────────────────────────────────────── */
+    const bar  = root.querySelector('.showcase-progress-bar');
+    const glow = root.querySelector('.gsap-showcase__progress-glow');
+
+    gsap.to(bar, {
+      scrollTrigger: {
+        trigger: root.querySelector('.gsap-showcase__progress-track'),
+        start:   'top 85%',
+        end:     'top 20%',
+        scrub:   1.2,
+      },
+      width:    '100%',
+      ease:     'none',
+      onUpdate: function () {
+        const pct = parseFloat(bar.style.width) || 0;
+        glow.style.left    = pct + '%';
+        glow.style.opacity = pct > 2 ? '0.85' : '0';
+      },
+    });
+
+    /* ────────────────────────────────────────────────────────────
+       4. FEATURE CARDS — staggered fly-up + icon pop-in + underline draw
+    ──────────────────────────────────────────────────────────── */
+    const cards = root.querySelectorAll('.showcase-card');
+
+    cards.forEach((card, i) => {
+      const iconWrap = card.querySelector('.showcase-card__icon-wrap');
+      const line     = card.querySelector('.showcase-card__reveal-line');
+
+      const cardTl = gsap.timeline({
+        scrollTrigger: st(card, { start: 'top 88%' }),
+      });
+
+      cardTl
+        .to(card, {
+          opacity:  1,
+          y:        0,
+          duration: 0.65,
+          delay:    i * 0.12,
+          ease:     'power3.out',
+        })
+        .to(iconWrap, {
+          scale:    1,
+          duration: 0.5,
+          ease:     'back.out(2)',
+        }, '-=0.3')
+        .to(line, {
+          scaleX:   1,
+          duration: 0.55,
+          ease:     'power2.inOut',
+        }, '-=0.2');
+    });
+
+    /* ────────────────────────────────────────────────────────────
+       5. CTA STRIP — slide up + button pulse loop
+    ──────────────────────────────────────────────────────────── */
+    const ctaEl  = root.querySelector('.gsap-showcase__cta');
+    const ctaBtn = root.querySelector('.showcase-cta-btn');
+
+    gsap.to(ctaEl, {
+      scrollTrigger: st(ctaEl, { start: 'top 90%' }),
+      opacity:  1,
+      y:        0,
+      duration: 0.8,
+      ease:     'power3.out',
+    });
+    gsap.set(ctaEl, { opacity: 0, y: 30 });
+
+    // Attention pulse on the button
+    ScrollTrigger.create({
+      trigger: ctaEl,
+      start:   'top 90%',
+      onEnter: () => {
+        gsap.to(ctaBtn, {
+          boxShadow: '0 0 0 12px rgba(108,99,255,0)',
+          duration:  1.2,
+          repeat:    -1,
+          ease:      'power2.out',
+          keyframes: [
+            { boxShadow: '0 0 0 0px rgba(108,99,255,0.5)', duration: 0.01 },
+            { boxShadow: '0 0 0 16px rgba(108,99,255,0)',  duration: 1.2  },
+          ],
+        });
+      },
+    });
+
+  } /* end initShowcase */
+
+  /* ── Fire on DOMContentLoaded (or immediately if already ready) ── */
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () {
+      initShowcase('{{ section.id }}');
+    });
+  } else {
+    initShowcase('{{ section.id }}');
+  }
+
+  /* ── Shopify Theme Editor live-reload support ── */
+  document.addEventListener('shopify:section:load', function (e) {
+    if (e.detail && e.detail.sectionId === '{{ section.id }}') {
+      ScrollTrigger.refresh();
+      initShowcase('{{ section.id }}');
+    }
+  });
+
+})();
+</script>
+
+{%- comment -%} ═══════════════════════════════ SCHEMA ═══════════════════════════════ {%- endcomment -%}
+{% schema %}
+{
+  "name": "GSAP Product Showcase",
+  "tag": "div",
+  "enabled_on": {
+    "templates": ["product"]
+  },
+  "blocks": [
+    {
+      "type": "feature_card",
+      "name": "Feature Card",
+      "settings": [
+        {
+          "type": "text",
+          "id": "icon_emoji",
+          "label": "Icon (emoji)",
+          "default": "✦"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Feature Title"
+        },
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "Description",
+          "default": "Describe this feature in a short, punchy sentence."
+        }
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "type": "header",
+      "content": "Section Content"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Why You'll Love It"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Built for the way you live — every detail crafted with intention."
+    },
+    {
+      "type": "header",
+      "content": "Stats"
+    },
+    {
+      "type": "text",
+      "id": "stat1_num",
+      "label": "Stat 1 — Number",
+      "default": "10K+"
+    },
+    {
+      "type": "text",
+      "id": "stat1_lbl",
+      "label": "Stat 1 — Label",
+      "default": "Happy Customers"
+    },
+    {
+      "type": "text",
+      "id": "stat2_num",
+      "label": "Stat 2 — Number",
+      "default": "4.9★"
+    },
+    {
+      "type": "text",
+      "id": "stat2_lbl",
+      "label": "Stat 2 — Label",
+      "default": "Average Rating"
+    },
+    {
+      "type": "text",
+      "id": "stat3_num",
+      "label": "Stat 3 — Number",
+      "default": "30-Day"
+    },
+    {
+      "type": "text",
+      "id": "stat3_lbl",
+      "label": "Stat 3 — Label",
+      "default": "Free Returns"
+    },
+    {
+      "type": "header",
+      "content": "Call to Action"
+    },
+    {
+      "type": "text",
+      "id": "cta_text",
+      "label": "Button Text",
+      "default": "Add to Cart"
+    },
+    {
+      "type": "url",
+      "id": "cta_url",
+      "label": "Button Link"
+    }
+  ],
+  "presets": [
+    {
+      "name": "GSAP Product Showcase",
+      "blocks": [
+        {
+          "type": "feature_card",
+          "settings": {
+            "icon_emoji": "🏆",
+            "title": "Premium Quality",
+            "description": "Crafted from top-grade materials tested for lasting durability."
+          }
+        },
+        {
+          "type": "feature_card",
+          "settings": {
+            "icon_emoji": "🚚",
+            "title": "Fast Shipping",
+            "description": "Orders dispatched within 24 hours — straight to your door."
+          }
+        },
+        {
+          "type": "feature_card",
+          "settings": {
+            "icon_emoji": "🔒",
+            "title": "Safe & Secure",
+            "description": "256-bit encrypted checkout. Shop with total confidence."
+          }
+        },
+        {
+          "type": "feature_card",
+          "settings": {
+            "icon_emoji": "♻️",
+            "title": "Eco Conscious",
+            "description": "Sustainably sourced and packaged in recycled materials."
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
