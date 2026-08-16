@@ -1,0 +1,38 @@
+{% comment %}
+  Accepts:
+  - product: {Object} Product Liquid object
+  - show_sale_badge: {Boolean}
+  - badge_text: {String}
+{% endcomment %}
+
+<a href="{{ product.url | default: '#' }}" class="product-card">
+  <div class="product-image-container">
+    {% if product.featured_image != blank %}
+      {{ product.featured_image | image_url: width: 600 | image_tag: loading: 'lazy', class: 'product-image' }}
+    {% else %}
+      {{ 'product-1' | placeholder_svg_tag: 'product-image' }}
+    {% endif %}
+    
+    {% if show_sale_badge and product.compare_at_price > product.price or show_sale_badge %}
+      <div class="badge-sale">{{ badge_text | default: 'SALE' }}</div>
+    {% endif %}
+  </div>
+  
+  <div class="product-info">
+    <h3 class="product-name">{{ product.title | default: 'Example Product Title' }}</h3>
+    <div class="product-pricing">
+      <span class="price-current">
+        {% if product.price %}
+          {{ product.price | money_without_trailing_zeros }}
+        {% else %}
+          $89
+        {% endif %}
+      </span>
+      {% if product.compare_at_price > product.price %}
+        <span class="price-old">{{ product.compare_at_price | money_without_trailing_zeros }}</span>
+      {% elsif product == blank %}
+        <span class="price-old">$249</span>
+      {% endif %}
+    </div>
+  </div>
+</a>

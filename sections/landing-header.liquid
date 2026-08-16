@@ -1,0 +1,81 @@
+{{ 'landing-page.css' | asset_url | stylesheet_tag }}
+
+{% if section.settings.enable_header %}
+  <header class="site-header" style="background-color: {{ section.settings.background_color }};">
+    <div class="header-container">
+      <div class="header-announcement">
+        <span class="material-symbols-outlined" style="color: {{ section.settings.text_color }};">{{ section.settings.icon_name }}</span>
+        
+        <countdown-timer data-prefix="{{ section.settings.announcement_text }}" data-target-date="{{ section.settings.target_date }}">
+          <span id="countdown-header" data-countdown-text style="color: {{ section.settings.text_color }};">
+            {{ section.settings.announcement_text }} 00:00:00
+          </span>
+        </countdown-timer>
+        
+      </div>
+      
+      {% if section.settings.show_cart_icon %}
+        <a href="{{ routes.cart_url }}" class="icon-button" style="color: {{ section.settings.text_color }};">
+          <span class="material-symbols-outlined">shopping_cart</span>
+        </a>
+      {% endif %}
+    </div>
+  </header>
+  
+  <script src="{{ 'landing-page.js' | asset_url }}" defer="defer"></script>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Landing Header",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enable_header",
+      "label": "Enable custom header",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background Color",
+      "default": "#ffbc7c"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text Color",
+      "default": "#4b2800"
+    },
+    {
+      "type": "text",
+      "id": "icon_name",
+      "label": "Material Icon Name",
+      "default": "bolt"
+    },
+    {
+      "type": "text",
+      "id": "announcement_text",
+      "label": "Announcement Text",
+      "default": "15th AUG SPECIAL:"
+    },
+    {
+      "type": "text",
+      "id": "target_date",
+      "label": "Target Date (e.g. 2024-08-15T00:00:00)",
+      "info": "Leave blank to simulate a 1-hour countdown for demo purposes."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_cart_icon",
+      "label": "Show Cart Icon",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "Landing Header"
+    }
+  ]
+}
+{% endschema %}

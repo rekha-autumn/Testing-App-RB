@@ -1,0 +1,133 @@
+{% if section.settings.enable_bottom_nav %}
+<div class="landing-page-body">
+  <nav class="bottom-nav">
+    <div class="bottom-nav-container">
+      {% for block in section.blocks limit: 5 %}
+        <a class="nav-item {% if forloop.first %}active{% endif %}" href="{{ block.settings.link }}" {{ block.shopify_attributes }}>
+          <span class="material-symbols-outlined" {% if forloop.first %}style="font-variation-settings: 'FILL' 1;"{% endif %}>{{ block.settings.icon_name }}</span>
+          <span class="nav-label">{{ block.settings.label }}</span>
+        </a>
+      {% endfor %}
+    </div>
+  </nav>
+</div>
+
+<style>
+  .bottom-nav {
+    background-color: {{ section.settings.bg_color | color_modify: 'alpha', 0.9 }};
+    border-top: 1px solid {{ section.settings.border_color }};
+  }
+  .nav-item {
+    color: {{ section.settings.text_color }};
+  }
+  .nav-item.active {
+    color: {{ section.settings.active_color }};
+    background-color: {{ section.settings.active_bg_color | color_modify: 'alpha', 0.1 }};
+  }
+</style>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Landing Bottom Nav",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enable_bottom_nav",
+      "label": "Enable Bottom Navigation",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background Color",
+      "default": "#131313"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Border Color",
+      "default": "#5d3f3b"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Inactive Icon/Text Color",
+      "default": "#e7bdb7"
+    },
+    {
+      "type": "color",
+      "id": "active_color",
+      "label": "Active Icon/Text Color",
+      "default": "#ffb4aa"
+    },
+    {
+      "type": "color",
+      "id": "active_bg_color",
+      "label": "Active Highlight Color",
+      "default": "#ffb4aa"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "nav_item",
+      "name": "Navigation Item",
+      "settings": [
+        {
+          "type": "text",
+          "id": "icon_name",
+          "label": "Material Icon Name",
+          "default": "home",
+          "info": "Find icons at fonts.google.com/icons"
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "default": "Home"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Landing Bottom Nav",
+      "blocks": [
+        {
+          "type": "nav_item",
+          "settings": {
+            "icon_name": "local_fire_department",
+            "label": "Deals"
+          }
+        },
+        {
+          "type": "nav_item",
+          "settings": {
+            "icon_name": "grid_view",
+            "label": "Categories"
+          }
+        },
+        {
+          "type": "nav_item",
+          "settings": {
+            "icon_name": "favorite",
+            "label": "Saved"
+          }
+        },
+        {
+          "type": "nav_item",
+          "settings": {
+            "icon_name": "person",
+            "label": "Account"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

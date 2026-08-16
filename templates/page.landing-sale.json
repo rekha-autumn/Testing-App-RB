@@ -1,0 +1,142 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "landing_header": {
+      "type": "landing-header",
+      "settings": {
+        "enable_header": true,
+        "background_color": "#ffbc7c",
+        "text_color": "#4b2800",
+        "icon_name": "bolt",
+        "announcement_text": "15th AUG SPECIAL:",
+        "target_date": "",
+        "show_cart_icon": true
+      }
+    },
+    "landing_hero": {
+      "type": "landing-hero",
+      "settings": {
+        "title": "AUGUST 15th SALE: UP TO 70% OFF",
+        "title_color": "#ffb4aa",
+        "subtitle": "24 Hours Only. Grab your favorites before they're gone.",
+        "subtitle_color": "#e7bdb7",
+        "button_text": "SHOP THE SALE",
+        "button_link": "",
+        "button_bg_color": "#ff3b30",
+        "button_text_color": "#ffffff",
+        "image": "shopify://shop_images/Card_4_2d931e6b-f290-40ed-b44c-9755cea0d728.jpg",
+        "discount_badge": "-70%",
+        "badge_bg_color": "#ff3b30",
+        "badge_text_color": "#ffffff",
+        "glow_color": "#ff3b30",
+        "padding_top": 60,
+        "padding_bottom": 48
+      }
+    },
+    "landing_products": {
+      "type": "landing-products",
+      "settings": {
+        "title": "Trending Now",
+        "title_color": "#e5e2e1",
+        "bg_color": "#131313",
+        "collection": "frontpage",
+        "product_limit": 4,
+        "show_view_all": true,
+        "view_all_text": "VIEW ALL",
+        "view_all_color": "#ffb4aa",
+        "show_sale_badge": true,
+        "badge_text": "SALE",
+        "padding_top": 48,
+        "padding_bottom": 48
+      }
+    },
+    "landing_urgency": {
+      "type": "landing-urgency",
+      "settings": {
+        "title": "HURRY! AUGUST 15th DEALS EXPIRE SOON",
+        "gradient_1": "#ffb4aa",
+        "gradient_2": "#ff3b30",
+        "gradient_3": "#fe9400",
+        "text": "Items in your cart are not reserved. Secure yours before the timer hits zero.",
+        "text_color": "#e7bdb7",
+        "button_text": "SECURE MY DEALS",
+        "button_link": "",
+        "button_bg_color": "#e5e2e1",
+        "button_text_color": "#131313",
+        "bg_color": "#0e0e0e",
+        "show_pattern": false,
+        "pattern_opacity": 0.3,
+        "padding_top": 80,
+        "padding_bottom": 80
+      }
+    },
+    "landing_trust": {
+      "type": "landing-trust",
+      "blocks": {
+        "trust_badge_wFKPJf": {
+          "type": "trust_badge",
+          "settings": {
+            "icon_name": "{{ page.title }}",
+            "title": "Fast Shipping",
+            "text": "24-hour dispatch on all orders"
+          }
+        }
+      },
+      "block_order": [
+        "trust_badge_wFKPJf"
+      ],
+      "settings": {
+        "bg_color": "#1c1b1b",
+        "icon_bg_color": "#201f1f",
+        "icon_color": "#ffb4aa",
+        "title_color": "#e5e2e1",
+        "text_color": "#e7bdb7",
+        "padding_top": 48,
+        "padding_bottom": 48
+      }
+    },
+    "landing_footer": {
+      "type": "landing-footer",
+      "settings": {
+        "bg_color": "#0e0e0e",
+        "logo_text": "FLASHDEALS",
+        "logo_color": "#ffb4aa",
+        "logo_width": 150,
+        "menu": "",
+        "link_color": "#e7bdb7",
+        "copyright_text": "AUGUST 15th SPECIAL - LIMITED TIME ONLY.",
+        "copyright_color": "#e7bdb7",
+        "padding_top": 48,
+        "padding_bottom": 100
+      }
+    },
+    "landing_bottom_nav": {
+      "type": "landing-bottom-nav",
+      "settings": {
+        "enable_bottom_nav": true,
+        "bg_color": "#131313",
+        "border_color": "#5d3f3b",
+        "text_color": "#e7bdb7",
+        "active_color": "#ffb4aa",
+        "active_bg_color": "#ffb4aa"
+      }
+    }
+  },
+  "order": [
+    "landing_header",
+    "landing_hero",
+    "landing_products",
+    "landing_urgency",
+    "landing_trust",
+    "landing_footer",
+    "landing_bottom_nav"
+  ]
+}
